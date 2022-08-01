@@ -1,0 +1,163 @@
+# This file is covered by the LICENSE file in the root of this project.
+labels:
+  0: "Undefined"
+  1: "Car"
+  2: "Truck"
+  3: "Bus"
+  4: "Other Vehicle" # Other small vehicles (e.g. pedicab) and large vehicles (e.g. construction vehicles, RV, limo, tram).
+  5: "Motorcyclist"
+  6: "Bicyclist"
+  7: "Pedestrian"
+  8: "Sign"
+  9: "Traffic Light"
+  10: "Pole" # Lamp post, traffic sign pole etc.
+  11: "Construction Cone" # Construction cone/pole.
+  12: "Bicycle"
+  13: "Motorcycle"
+  14: "Building"
+  15: "Vegetation" # Bushes, tree branches, tall grasses, flowers etc.
+  16: "Tree Trunk"
+  17: "Curb" # Curb on the edge of roads. This does not include road boundaries if there’s no curb.
+  18: "Road" # Surface a vehicle could drive on. This include the driveway connecting // parking lot and road over a section of sidewalk.
+  19: "Lane Marker" # Marking on the road that’s specifically for defining lanes such as // single/double white/yellow lines.
+  20: "Other Ground" # Marking on the road other than lane markers, bumps, cateyes, railtracks // etc.
+  21: "Walkable" # Most horizontal surface that’s not drivable, e.g. grassy hill, // pedestrian walkway stairs etc.
+  22: "Sidewalk" # Nicely paved walkable surface when pedestrians most likely to walk on.
+
+color_map: # bgr
+  0 : [0, 0, 0]
+  1 : [0, 0, 255]
+  2: [245, 150, 100]
+  3: [245, 230, 100]
+  4: [250, 80, 100]
+  5: [150, 60, 30]
+  6: [255, 0, 0]
+  7: [180, 30, 80]
+  8: [255, 0, 0]
+  9: [30, 30, 255]
+  10: [200, 40, 255]
+  11: [90, 30, 150]
+  12: [255, 0, 255]
+  13: [255, 150, 255]
+  14: [75, 0, 75]
+  15: [75, 0, 175]
+  16: [0, 200, 255]
+  17: [50, 120, 255]
+  18: [0, 150, 255]
+  19: [170, 255, 150]
+  20: [0, 175, 0]
+  21: [0, 60, 135]
+  22: [80, 240, 150]
+
+content: # as a ratio with the total number of points
+  0: 1.018889854628292943
+  1: 1.0002937197336781505
+  2: 1.1326861944777486
+  3: 1.0723592229456223
+  4: 1.1987493871255525
+  5: 1.014717169549888214
+  6: 1.14392298360372
+  7: 1.14392298360372
+  8: 1.14392298360372
+  9: 1.0039048553037472045
+  10: 1.040818519255974316
+  11: 1.00016609538710764618
+  12: 1.00016609538710764618
+  13: 1.0027879693665067774
+  14: 1.0027879693665067774
+  15: 1.00039838616015114444
+  16: 1.0020633612104619787
+  17: 1.0020633612104619787
+  18: 1.0020633612104619787
+  19: 1.0020633612104619787
+  20: 1.0016218197275284021
+  21: 1.0020633612104619787
+  22: 1.0016218197275284021
+
+# classes that are indistinguishable from single scan or inconsistent in
+# ground truth are mapped to their closest equivalent
+learning_map:
+  0: 0 # "Undefined"
+  1: 0 # "Car"
+  2: 0 # "Truck"
+  3: 0 # "Bus"
+  4: 1 # "Other Vehicle"
+  5: 2 # "Motorcyclist"
+  6: 3 # "Bicyclist"
+  7: 0 # "Pedestrian"
+  8: 0 # "Sign"
+  9: 0 # "Traffic Light"
+  10: 0 # "Pole"
+  11: 0 # "Construction Cone"
+  12: 4 # "Bicycle"
+  13: 5 # "Motorcycle"
+  14: 0 # "Building"
+  15: 0 # "Vegetation"
+  16: 0 # "Tree Trunk"
+  17: 0 # "Curb"
+  18: 6 # "Road"
+  19: 7 # "Lane Marker"
+  20: 8 # "Other Ground"
+  21: 0 # "Walkable"
+  22: 0 # "Sidewalk"
+
+learning_map_inv: # inverse of previous map
+  0: 0 # "Undefined"
+  1: 4 # "Other Vehicle"
+  2: 5 # "Motorcyclist"
+  3: 6 # "Bicyclist"
+  4: 12 # "Bicycle"
+  5: 13 # "Motorcycle"
+  6: 18 # "Road"
+  7: 19 # "Lane Marker"
+  8: 20 # "Other Ground"
+
+learning_ignore: # Ignore classes
+  0: True # "Undefined"
+  1: False # "Other Vehicle"
+  2: False # "Motorcyclist"
+  3: False # "Bicyclist"
+  4: False # "Bicycle"
+  5: False # "Motorcycle"
+  6: False # "Road"
+  7: False # "Lane Marker"
+  8: False # "Other Ground"
+
+split: # sequence numbers
+  train: # 20 percent gt
+    - 10017090168044687777_6380_000_6400_000
+    - 13622747960068272448_1678_930_1698_930
+    - 10023947602400723454_1120_000_1140_000
+    - 13830510593707564159_5575_000_5595_000
+    - 1005081002024129653_5313_150_5333_150
+    - 14818835630668820137_1780_000_1800_000
+    - 10061305430875486848_1080_000_1100_000
+    - 14824622621331930560_2395_420_2415_420
+    - 10072140764565668044_4060_000_4080_000
+    - 14830022845193837364_3488_060_3508_060
+    - 10072231702153043603_5725_000_5745_000
+    - 14869732972903148657_2420_000_2440_000
+    - 10075870402459732738_1060_000_1080_000
+    - 14940138913070850675_5755_330_5775_330
+    - 10082223140073588526_6140_000_6160_000
+    - 14964131310266936779_3292_850_3312_850
+    - 10094743350625019937_3420_000_3440_000
+    - 14964691552976940738_2219_229_2239_229
+    - 10096619443888687526_2820_000_2840_000
+    - 15644354861949427452_3645_350_3665_350
+    - 10107710434105775874_760_000_780_000
+
+  valid: #
+    - 10203656353524179475_7625_000_7645_000
+    - 12374656037744638388_1412_711_1432_711
+    - 1024360143612057520_3580_000_3600_000
+    - 12496433400137459534_120_000_140_000
+    - 10247954040621004675_2180_000_2200_000
+    - 12657584952502228282_3940_000_3960_000
+    - 10289507859301986274_4200_000_4220_000
+    - 12820461091157089924_5202_916_5222_916
+    - 10335539493577748957_1372_870_1392_870
+    - 12831741023324393102_2673_230_2693_230
+    - 10359308928573410754_720_000_740_000
+  test:
+    - 10203656353524179475_7625_000_7645_000
