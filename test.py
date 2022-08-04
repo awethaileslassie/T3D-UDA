@@ -315,11 +315,11 @@ if __name__ == '__main__':
     # Training settings
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('-y', '--config_path',
-                        default='config/wod/wod_f3_3_intensity_beam32.yaml')
+                        default='config/da_wod_kitti/uda_wod_kitti_f0_0_intensity.yaml')
     parser.add_argument('-g', '--mgpus', action='store_true', default=False)
-    parser.add_argument('-m', '--mode', default='test')
+    parser.add_argument('-m', '--mode', default='val')
     parser.add_argument('-s', '--save', default=True)
-    parser.add_argument('-c', '--challenge', default=True)
+    parser.add_argument('-c', '--challenge', default=False)
     parser.add_argument('-p', '--challenge_path', default='/mnt/beegfs/gpu/argoverse-tracking-all-training/' \
                                                           'WOD/challenge')
     parser.add_argument('-u', '--ups', default=False)
