@@ -313,7 +313,7 @@ def main(args):
 if __name__ == '__main__':
     # Training settings
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-y', '--config_path', default='config/wod/wod_f3_3_time_beam32.yaml')
+    parser.add_argument('-y', '--config_path', default='config/wod/wod_f0_0_intensity_beam32.yaml')
     parser.add_argument('-g', '--mgpus', action='store_true', default=False)
     parser.add_argument("--local_rank", default=0, type=int)
     args = parser.parse_args()

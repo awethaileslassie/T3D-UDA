@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
-import  math
+import math
 
 from utils.metric_util import per_class_iu, fast_hist_crop, fast_ups_crop
 from dataloader.pc_dataset import get_SemKITTI_label_name, get_SemKITTI_label_inv_name, update_config
@@ -28,7 +28,7 @@ warnings.filterwarnings("ignore")
 
 
 def main(args):
-    #pytorch_device = torch.device("cuda:2") # torch.device('cuda:2')
+    # pytorch_device = torch.device("cuda:2") # torch.device('cuda:2')
     # os.environ['TORCH_DISTRIBUTED_DEBUG'] = 'true'
     # os.environ['MASTER_ADDR'] = 'localhost'
     # os.environ['MASTER_PORT'] = '9994'
@@ -48,7 +48,6 @@ def main(args):
         torch.distributed.init_process_group(backend='nccl',
                                              init_method='env://')
         args.world_size = torch.distributed.get_world_size()
-
 
     config_path = args.config_path
 
@@ -77,7 +76,7 @@ def main(args):
 
     grid_size = model_config['output_shape']
     num_class = model_config['num_class']
-    ignore_label = None #dataset_config['ignore_label']
+    ignore_label = None  # dataset_config['ignore_label']
 
     model_load_path = train_hypers['model_load_path']
     model_save_path = train_hypers['model_save_path']
@@ -98,8 +97,8 @@ def main(args):
     #     #my_model.cuda()
     # #my_model.cuda()
 
-    #my_model = my_model().to(pytorch_device)
-    #if args.local_rank >= 1:
+    # my_model = my_model().to(pytorch_device)
+    # if args.local_rank >= 1:
     if distributed:
         model = DistributedDataParallel(
             model,
@@ -108,19 +107,17 @@ def main(args):
             find_unused_parameters=True
         )
 
-
-
     optimizer = optim.Adam(model.parameters(), lr=train_hypers["learning_rate"])
 
     loss_func, lovasz_softmax = loss_builder.build(wce=True, lovasz=True,
                                                    num_class=num_class, ignore_label=ignore_label)
 
-    train_dataset_loader,val_dataset_loader,test_dataset_loader = data_builder.build(dataset_config,
-                                                                  train_dataloader_config,
-                                                                  val_dataloader_config,
-                                                                  test_dataloader_config,
-                                                                  grid_size=grid_size)
-
+    train_dataset_loader, val_dataset_loader, test_dataset_loader, _ = data_builder.build(dataset_config,
+                                                                                       train_dataloader_config,
+                                                                                       val_dataloader_config,
+                                                                                       test_dataloader_config=test_dataloader_config,
+                                                                                       grid_size=grid_size,
+                                                                                       train_hypers=train_hypers)
 
     if args.mode == 'val':
         dataset_loader = val_dataset_loader
@@ -133,9 +130,12 @@ def main(args):
         # test and validation
         path_to_save_pridicted_labels = test_dataloader_config['data_path']
 
-
     # mode to eval
     model.eval()
+
+    from torchsummary import summary
+    # print model parameter
+    summary(model)
 
     # if uncertainty is used, enable dropout
     if args.ups:
@@ -150,6 +150,8 @@ def main(args):
         hist_list = []
         hist_list_op = []
         ups_count = []
+        # print model parameter
+        summary(model)
 
         def validation_inference(vox_label, grid, pt_labs, pt_fea, ref_st_idx=None, ref_end_idx=None, lcw=None):
             val_pt_fea_ten = [torch.from_numpy(i).type(torch.FloatTensor).to(pytorch_device) for i in pt_fea]
@@ -193,12 +195,13 @@ def main(args):
 
             for count, i_val_grid in enumerate(grid):
 
-                predict_label = predict_labels[ count, grid[count][:, 0], grid[count][:, 1], grid[count][:, 2]]
+                predict_label = predict_labels[count, grid[count][:, 0], grid[count][:, 1], grid[count][:, 2]]
 
-                predict_prob = predict_probabilitys[ count, grid[count][:, 0], grid[count][:, 1], grid[count][:, 2]]
+                predict_prob = predict_probabilitys[count, grid[count][:, 0], grid[count][:, 1], grid[count][:, 2]]
 
                 if args.ups:
-                    model_uncertainty = model_uncertaintys[ count, grid[count][:, 0], grid[count][:, 1], grid[count][:, 2]]
+                    model_uncertainty = model_uncertaintys[
+                        count, grid[count][:, 0], grid[count][:, 1], grid[count][:, 2]]
                     model_uncertainty_serialized = np.array(model_uncertainty, dtype=np.float32)
 
                 predict_labels_serialized = np.array(predict_label, dtype=np.int32)
@@ -209,23 +212,23 @@ def main(args):
                 # get reference frame start and end index
                 st_id, end_id = int(ref_st_idx[count]), int(ref_end_idx[count])
 
-                #'''
+                # '''
                 # only select the reference frame points
                 if ref_st_idx is not None:
-                    predict_labels_serialized = predict_labels_serialized[st_id:st_id+end_id]
-                    predict_prob_serialized = predict_prob_serialized[st_id:st_id+end_id]
-                    demo_pt_labs = demo_pt_labs[st_id:st_id+end_id]
+                    predict_labels_serialized = predict_labels_serialized[st_id:st_id + end_id]
+                    predict_prob_serialized = predict_prob_serialized[st_id:st_id + end_id]
+                    demo_pt_labs = demo_pt_labs[st_id:st_id + end_id]
                     if args.ups:
-                        model_uncertainty_serialized = model_uncertainty_serialized[st_id:st_id+end_id]
+                        model_uncertainty_serialized = model_uncertainty_serialized[st_id:st_id + end_id]
 
                 if args.mode == 'val':
                     hist_list.append(fast_hist_crop(predict_labels_serialized, demo_pt_labs,
-                                                unique_label))
+                                                    unique_label))
                     if args.ups:
-                        tmp_hist, temp_count=  fast_ups_crop(model_uncertainty_serialized, demo_pt_labs.flatten(), unique_label)
+                        tmp_hist, temp_count = fast_ups_crop(model_uncertainty_serialized, demo_pt_labs.flatten(),
+                                                             unique_label)
                         ups_hist.append(tmp_hist)
                         ups_count.append(temp_count)
-
 
                 if args.save:
 
@@ -235,8 +238,11 @@ def main(args):
                     # print(predict_labels_serialized.size)
 
                     # get frame and sequence name
-                    sample_name = dataset_loader.dataset.point_cloud_dataset.im_idx[i_iter_val * batch_size + count][-10:-4]
-                    sequence_num = dataset_loader.dataset.point_cloud_dataset.im_idx[i_iter_val * batch_size + count].split("/")[-3] #[-22:-20]
+                    sample_name = dataset_loader.dataset.point_cloud_dataset.im_idx[i_iter_val * batch_size + count][
+                                  -10:-4]
+                    sequence_num = \
+                    dataset_loader.dataset.point_cloud_dataset.im_idx[i_iter_val * batch_size + count].split("/")[
+                        -3]  # [-22:-20]
 
                     # create destination path to save predictions
                     # path_to_seq_folder = path_to_save_pridicted_labels + '/' + str(sequence_num)
@@ -247,13 +253,15 @@ def main(args):
 
                     if args.challenge:
                         path_to_save_test_pridicted_labels = '/mnt/beegfs/gpu/argoverse-tracking-all-training/' \
-                                                        'WOD/challenge_v3_2/test'
+                                                             'WOD/challenge_v3_2/test'
                         path_to_seq_folder = os.path.join(path_to_save_test_pridicted_labels,
-                                                          f"f{T_past_frame}_{T_future_frame}", str(args.mode), str(sequence_num),
+                                                          f"f{T_past_frame}_{T_future_frame}", str(args.mode),
+                                                          str(sequence_num),
                                                           "prediction")
                         path_to_seq_folder_prob = os.path.join(path_to_save_test_pridicted_labels,
-                                                          f"f{T_past_frame}_{T_future_frame}", str(args.mode), str(sequence_num),
-                                                          "probability")
+                                                               f"f{T_past_frame}_{T_future_frame}", str(args.mode),
+                                                               str(sequence_num),
+                                                               "probability")
 
                     if not os.path.exists(path_to_seq_folder):
                         os.makedirs(path_to_seq_folder)
@@ -272,26 +280,15 @@ def main(args):
                     # predict_labels_serialized.tofile(path_to_seq_folder + '/' + sample_name + '.label')
                     np.save(os.path.join(path_to_seq_folder, sample_name), predict_labels_serialized)
                     np.save(os.path.join(path_to_seq_folder_prob, sample_name), predict_prob_serialized)
-                        
-
 
         # Validation with multi-frames and ssl:
-        #if past_frame > 0 and train_hypers['ssl']:
-        for i_iter_val, (_, vox_label, grid, pt_labs, pt_fea, ref_st_idx, ref_end_idx, lcw) in tqdm(enumerate(dataset_loader), total=math.ceil(len(dataset_loader.dataset.point_cloud_dataset.im_idx)/batch_size)):
+        # if past_frame > 0 and train_hypers['ssl']:
+        for i_iter_val, (_, vox_label, grid, pt_labs, pt_fea, ref_st_idx, ref_end_idx, lcw) in tqdm(
+                enumerate(dataset_loader),
+                total=math.ceil(len(dataset_loader.dataset.point_cloud_dataset.im_idx) / batch_size)):
             # call the validation and inference with
-            validation_inference(vox_label, grid, pt_labs, pt_fea, ref_st_idx=ref_st_idx, ref_end_idx=ref_end_idx, lcw=lcw)
-
-        # # Validation with multi-frames:
-        # elif train_hypers['past'] > 0:
-        #     for i_iter_val, (_, vox_label, grid, pt_labs, pt_fea, ref_st_idx, ref_end_idx) in tqdm(enumerate(dataset_loader), total=math.ceil(len(dataset_loader.dataset.point_cloud_dataset.im_idx)/batch_size)):
-        #         # call the validation and inference with multi-frames
-        #         validation_inference(vox_label, grid, pt_labs, pt_fea, ref_st_idx=ref_st_idx, ref_end_idx=ref_end_idx, lcw=None)
-        #
-        # # Validation with single-frame:
-        # else:
-        #     for i_iter_val, (_, vox_label, grid, pt_labs , pt_fea) in tqdm(enumerate(dataset_loader), total=math.ceil(len(dataset_loader.dataset.point_cloud_dataset.im_idx)/batch_size)):
-        #         # call the validation and inference with single frame
-        #         validation_inference(vox_label, grid, pt_labs, pt_fea, ref_st_idx=None, ref_end_idx=None, lcw=None)
+            validation_inference(vox_label, grid, pt_labs, pt_fea, ref_st_idx=ref_st_idx, ref_end_idx=ref_end_idx,
+                                 lcw=lcw)
 
         # print the validation per class iou and overall miou
         if args.mode == 'val':
@@ -302,24 +299,25 @@ def main(args):
             for class_name, class_iou in zip(unique_label_str, iou):
                 print('%s : %.2f%%' % (class_name, class_iou * 100))
                 ob_class += f'{class_name} | '
-                ob_iou += f'{round(class_iou*100,2)} | '
+                ob_iou += f'{round(class_iou * 100, 2)} | '
             val_miou = np.nanmean(iou) * 100
             print(ob_class)
             print(ob_iou)
             print('Current val miou is %.3f' % (val_miou))
         if args.ups:
-            uncertainity_hist = np.sum(ups_hist, axis=0)/np.sum(ups_count, axis=0)
+            uncertainity_hist = np.sum(ups_hist, axis=0) / np.sum(ups_count, axis=0)
             plt.bar(range(20), uncertainity_hist, width=0.4)
             plt.show()
             print(uncertainity_hist)
 
+
 if __name__ == '__main__':
     # Training settings
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-y', '--config_path', default='config/wod/wod_f2_2_time.yaml')
+    parser.add_argument('-y', '--config_path', default='config/wod/wod_f0_0_intensity_beam32.yaml')
     parser.add_argument('-g', '--mgpus', action='store_true', default=False)
-    parser.add_argument('-m', '--mode', default='val')
-    parser.add_argument('-s', '--save', default=False)
+    parser.add_argument('-m', '--mode', default='test')
+    parser.add_argument('-s', '--save', default=True)
     parser.add_argument('-c', '--challenge', default=False)
     parser.add_argument('-u', '--ups', default=False)
     parser.add_argument("--local_rank", default=0, type=int)
