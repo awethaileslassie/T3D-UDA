@@ -338,7 +338,7 @@ class SemKITTI_sk_multiscan(data.Dataset):
         elif imageset == 'pseudo':
             self.split = semkittiyaml['split']['pseudo']
         else:
-            raise Exception('Split must be train/val/test/pseudo')
+            raise Exception(f'{imageset}: Split must be train/val/test/pseudo')
 
         self.load_calib_poses()
 
@@ -626,7 +626,7 @@ class WOD_multiscan(data.Dataset):
         elif imageset == 'pseudo':
             self.split = wodyaml['split']['pseudo']
         else:
-            raise Exception('Split must be train/val/test/pseudo')
+            raise Exception(f'{imageset}: Split must be train/val/test/pseudo')
 
         # self.split = sorted(os.listdir(self.data_path))
         # self.training_len = len(self.split)
