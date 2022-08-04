@@ -1,6 +1,6 @@
-# `ST3D-UDA` Spatio-Temporal Unsupervised Domain Adaptation 3D Sequential Data
+# `T3D-UDA` Spatio-Temporal Unsupervised Domain Adaptation 3D Sequential Data
 
-`ST3D-UDA` The source code of our work **Teachers in concordance for pseudo-labeling of 3D sequential data**
+`T3D-UDA` The source code of our work **Teachers in concordance for pseudo-labeling of 3D sequential data**
 ![img│center](./image/concordance-architecture.png)
 Proposed Concordance of teachers for pseudo- labeling of sequences. A set Dℓ of sequences with central frame labeled,
 and a larger set Du of unannotated ones, are available for training; 1⃝ Multiple offline teachers are trained with full
