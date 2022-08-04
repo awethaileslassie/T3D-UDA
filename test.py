@@ -1,31 +1,50 @@
 # -*- coding:utf-8 -*-
 # author: Awet H. Gebrehiwot
 # --------------------------|
-import os
 import argparse
+import math
+import os
 import sys
+import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+import torch.nn.functional as F
 import torch.optim as optim
+from torch.nn.parallel import DistributedDataParallel
 from tqdm import tqdm
-import math
 
-from utils.metric_util import per_class_iu, fast_hist_crop, fast_ups_crop
-from dataloader.pc_dataset import get_SemKITTI_label_name, get_SemKITTI_label_inv_name, update_config
 from builder import data_builder, model_builder, loss_builder
 from config.config import load_config_data
-import torch.nn.functional as F
-
+from dataloader.pc_dataset import get_label_name, get_label_inv_name, update_config
 from utils.load_save_util import load_checkpoint
+from utils.metric_util import per_class_iu, fast_hist_crop, fast_ups_crop
 from utils.ups import enable_dropout
 
-import warnings
-
-from torch.nn.parallel import DistributedDataParallel
-
 warnings.filterwarnings("ignore")
+
+
+def save_predictions_sematicKitti(predict_labels_serialized, predict_prob_serialized, path_to_seq_folder,
+                                  path_to_seq_folder_prob, sample_name):
+    # dump predictions and probability
+    predict_labels_serialized.tofile(path_to_seq_folder + '/' + sample_name + '.label')
+
+    if not args.challenge:
+        if not os.path.exists(path_to_seq_folder_prob):
+            os.makedirs(path_to_seq_folder_prob)
+        predict_prob_serialized.tofile(path_to_seq_folder_prob + '/' + sample_name + '.label')
+
+
+def save_predictions_wod(predict_labels_serialized, predict_prob_serialized, path_to_seq_folder,
+                         path_to_seq_folder_prob, sample_name):
+    # dump predictions and probability
+    np.save(os.path.join(path_to_seq_folder, sample_name), predict_labels_serialized)
+
+    if not args.challenge:
+        if not os.path.exists(path_to_seq_folder_prob):
+            os.makedirs(path_to_seq_folder_prob)
+        np.save(os.path.join(path_to_seq_folder_prob, sample_name), predict_prob_serialized)
 
 
 def main(args):
@@ -56,6 +75,7 @@ def main(args):
     update_config(configs)
 
     dataset_config = configs['dataset_params']
+    dataset_type = 'SemanticKITTI' if 'SemKITTI_sk_multiscan' == dataset_config['pc_dataset_type'] else 'WOD'
     train_dataloader_config = configs['train_data_loader']
     ssl_dataloader_config = configs['ssl_data_loader']
     val_dataloader_config = configs['val_data_loader']
@@ -82,11 +102,11 @@ def main(args):
     model_load_path = train_hypers['model_load_path']
     model_save_path = train_hypers['model_save_path']
 
-    SemKITTI_label_name = get_SemKITTI_label_name(dataset_config["label_mapping"])
+    SemKITTI_label_name = get_label_name(dataset_config["label_mapping"])
     unique_label = np.asarray(sorted(list(SemKITTI_label_name.keys())))[1:] - 1
     unique_label_str = [SemKITTI_label_name[x] for x in unique_label + 1]
 
-    SemKITTI_learningmap_inv = get_SemKITTI_label_inv_name(dataset_config["label_mapping"])
+    SemKITTI_learningmap_inv = get_label_inv_name(dataset_config["label_mapping"])
     model = model_builder.build(model_config).to(pytorch_device)
     print(f"model_load_path: {model_load_path}")
     if os.path.exists(model_load_path):
@@ -106,17 +126,14 @@ def main(args):
             find_unused_parameters=True
         )
 
-    optimizer = optim.Adam(model.parameters(), lr=train_hypers["learning_rate"])
-
-    loss_func, lovasz_softmax = loss_builder.build(wce=True, lovasz=True,
-                                                   num_class=num_class, ignore_label=ignore_label)
-
-    train_dataset_loader, val_dataset_loader, test_dataset_loader, ssl_dataset_loader = data_builder.build(dataset_config,
-                                                                                       train_dataloader_config,
-                                                                                       val_dataloader_config,
-                                                                                       test_dataloader_config,
-                                                                                       ssl_dataloader_config,
-                                                                                       grid_size=grid_size)
+    train_dataset_loader, val_dataset_loader, test_dataset_loader, ssl_dataset_loader = data_builder.build(
+        dataset_config,
+        train_dataloader_config,
+        val_dataloader_config,
+        test_dataloader_config,
+        ssl_dataloader_config,
+        grid_size=grid_size,
+        train_hypers=train_hypers)
 
     # test and validation
     if args.mode == 'val':
@@ -160,11 +177,11 @@ def main(args):
 
                 ups_out_prob = torch.stack(ups_out_prob)
                 out_std = torch.std(ups_out_prob, dim=0)
-                predict_probablity = torch.mean(ups_out_prob, dim=0)
-                predict_labels = torch.argmax(predict_probablity, dim=1)
+                predict_probability = torch.mean(ups_out_prob, dim=0)
+                predict_labels = torch.argmax(predict_probability, dim=1)
 
                 # keep dimension during finding maximum
-                predict_prob_max, predict_prob_ind = torch.max(predict_probablity, dim=1, keepdim=True)
+                predict_prob_max, predict_prob_ind = torch.max(predict_probability, dim=1, keepdim=True)
 
                 # squeeze (remove the 1 size form the tensor)
                 predict_prob_max = torch.squeeze(predict_prob_max)
@@ -178,23 +195,23 @@ def main(args):
             else:
                 predict_labels_raw = model(val_pt_fea_ten, val_grid_ten, batch_size)
                 predict_labels = torch.argmax(predict_labels_raw, dim=1)
-                predict_probablity = torch.nn.functional.softmax(predict_labels_raw, dim=1)
-                predict_prob_max, predict_prob_ind = predict_probablity.max(dim=1)
+                predict_probability = torch.nn.functional.softmax(predict_labels_raw, dim=1)
+                predict_prob_max, predict_prob_ind = predict_probability.max(dim=1)
 
             # move to cpu and detach to convert to numpy
             predict_labels = predict_labels.cpu().detach().numpy()
-            predict_probabilitys = predict_prob_max.cpu().detach().numpy()
+            predict_probabilities = predict_prob_max.cpu().detach().numpy()
             if args.ups:
-                model_uncertintys = max_std.cpu().detach().numpy()
+                model_uncertainties = max_std.cpu().detach().numpy()
 
             for count, i_val_grid in enumerate(grid):
 
                 predict_label = predict_labels[count, grid[count][:, 0], grid[count][:, 1], grid[count][:, 2]]
 
-                predict_prob = predict_probabilitys[count, grid[count][:, 0], grid[count][:, 1], grid[count][:, 2]]
+                predict_prob = predict_probabilities[count, grid[count][:, 0], grid[count][:, 1], grid[count][:, 2]]
 
                 if args.ups:
-                    model_uncertainty = model_uncertintys[
+                    model_uncertainty = model_uncertainties[
                         count, grid[count][:, 0], grid[count][:, 1], grid[count][:, 2]]
                     model_uncertainty_serialized = np.array(model_uncertainty, dtype=np.float32)
 
@@ -224,7 +241,6 @@ def main(args):
                         ups_count.append(temp_count)
 
                 if args.save:
-
                     # convert the prediction into corresponding GT labels (inverse mapping)
                     for index, label in enumerate(predict_labels_serialized):
                         predict_labels_serialized[index] = SemKITTI_learningmap_inv[label]
@@ -233,9 +249,8 @@ def main(args):
                     # get frame and sequence name
                     sample_name = dataset_loader.dataset.point_cloud_dataset.im_idx[i_iter_val * batch_size + count][
                                   -10:-4]
-                    sequence_num = dataset_loader.dataset.point_cloud_dataset.im_idx[i_iter_val * batch_size + count][
-                                   -22:-20]
-
+                    sequence_num = dataset_loader.dataset.point_cloud_dataset.im_idx[i_iter_val * batch_size + count].split("/")[
+                            -3]  # [-22:-20]
                     # create destination path to save predictions
                     # path_to_seq_folder = path_to_save_predicted_labels + '/' + str(sequence_num)
                     path_to_seq_folder = os.path.join(path_to_save_predicted_labels, str(sequence_num),
@@ -244,8 +259,7 @@ def main(args):
                                                            f"probability_f{T_past_frame}_{T_future_frame}")
 
                     if args.challenge:
-                        path_to_save_test_predicted_labels = '/mnt/beegfs/gpu/argoverse-tracking-all-training/' \
-                                                             'semantic-kitti/challenge'
+                        path_to_save_test_predicted_labels = args.challenge_path
                         path_to_seq_folder = os.path.join(path_to_save_test_predicted_labels,
                                                           f"f{T_past_frame}_{T_future_frame}", "sequences",
                                                           str(sequence_num),
@@ -254,13 +268,23 @@ def main(args):
                     if not os.path.exists(path_to_seq_folder):
                         os.makedirs(path_to_seq_folder)
 
-                    # dump predictions and probability
-                    predict_labels_serialized.tofile(path_to_seq_folder + '/' + sample_name + '.label')
+                    if dataset_type == 'SemanticKITTI':
+                        save_predictions_sematicKitti(predict_labels_serialized, predict_prob_serialized,
+                                                      path_to_seq_folder, path_to_seq_folder_prob, sample_name)
 
-                    if not args.challenge:
-                        if not os.path.exists(path_to_seq_folder_prob):
-                            os.makedirs(path_to_seq_folder_prob)
-                        predict_prob_serialized.tofile(path_to_seq_folder_prob + '/' + sample_name + '.label')
+                    elif dataset_type == 'WOD':
+                        save_predictions_wod(predict_labels_serialized, predict_prob_serialized,
+                                             path_to_seq_folder, path_to_seq_folder_prob, sample_name)
+
+                    else:
+                        raise Exception(f'{dataset_type} dataset type not known')
+                    # # dump predictions and probability
+                    # predict_labels_serialized.tofile(path_to_seq_folder + '/' + sample_name + '.label')
+                    #
+                    # if not args.challenge:
+                    #     if not os.path.exists(path_to_seq_folder_prob):
+                    #         os.makedirs(path_to_seq_folder_prob)
+                    #     predict_prob_serialized.tofile(path_to_seq_folder_prob + '/' + sample_name + '.label')
 
         # Validation with multi-frames and ssl:
         # if past_frame > 0 and train_hypers['ssl']:
@@ -290,11 +314,14 @@ def main(args):
 if __name__ == '__main__':
     # Training settings
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-y', '--config_path', default='config/semantickitti/semantickitti_S0_0_T11_33_ssl_s20_p80.yaml')
+    parser.add_argument('-y', '--config_path',
+                        default='config/wod/wod_f3_3_intensity_beam32.yaml')
     parser.add_argument('-g', '--mgpus', action='store_true', default=False)
-    parser.add_argument('-m', '--mode', default='infer')
-    parser.add_argument('-s', '--save', default=False)
-    parser.add_argument('-c', '--challenge', default=False)
+    parser.add_argument('-m', '--mode', default='test')
+    parser.add_argument('-s', '--save', default=True)
+    parser.add_argument('-c', '--challenge', default=True)
+    parser.add_argument('-p', '--challenge_path', default='/mnt/beegfs/gpu/argoverse-tracking-all-training/' \
+                                                          'WOD/challenge')
     parser.add_argument('-u', '--ups', default=False)
     parser.add_argument("--local_rank", default=0, type=int)
     args = parser.parse_args()
