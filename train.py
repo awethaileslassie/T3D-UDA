@@ -294,7 +294,6 @@ def main(args):
 
         my_model.train()
         # training with multi-frames and ssl:
-        # if past_frame > 0 and train_hypers['ssl']:
         for i_iter_train, (_, vox_label, grid, pt_labs, pt_fea, ref_st_idx, ref_end_idx, lcw) in enumerate(
                 train_dataset_loader):
             # call the validation and inference with
