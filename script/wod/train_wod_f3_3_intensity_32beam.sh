@@ -30,4 +30,4 @@ echo "epoch 0"
 
 #CUDA_VISIBLE_DEVICES=0,1,2,3 NCCL_P2P_DISABLE=1 python -u -m torch.distributed.launch --nproc_per_node=4 --master_port=$RANDOM train_cylinder_asym_wod.py --config_path 'config/wod/wod_f3_3.yaml' 2>&1 | tee logs_dir/${name}_logs_wod_f3_3_b2_v3_2.txt
 
-python train_wod.py --config_path 'config/wod/wod_f3_3_intensity_beam32.yaml' 2>&1 | tee logs_dir/${name}_logs_wod_f3_3_b2_v3_2_intensity_beam32.txt
+python train.py --config_path 'config/wod/wod_f3_3_intensity_beam32.yaml' 2>&1 | tee logs_dir/${name}_logs_wod_f3_3_b2_v3_2_intensity_beam32.txt

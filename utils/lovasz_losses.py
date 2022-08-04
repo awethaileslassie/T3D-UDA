@@ -9,14 +9,16 @@ Maxim Berman 2018 ESAT-PSI KU Leuven (MIT License)
 
 from __future__ import print_function, division
 
-import torch
-from torch.autograd import Variable
-import torch.nn.functional as F
 import numpy as np
+import torch
+import torch.nn.functional as F
+from torch.autograd import Variable
+
 try:
-    from itertools import  ifilterfalse
-except ImportError: # py3k
-    from itertools import  filterfalse as ifilterfalse
+    from itertools import ifilterfalse
+except ImportError:  # py3k
+    from itertools import filterfalse as ifilterfalse
+
 
 def lovasz_grad(gt_sorted):
     """
@@ -28,7 +30,7 @@ def lovasz_grad(gt_sorted):
     intersection = gts - gt_sorted.float().cumsum(0)
     union = gts + (1 - gt_sorted).float().cumsum(0)
     jaccard = 1. - intersection / union
-    if p > 1: # cover 1-pixel case
+    if p > 1:  # cover 1-pixel case
         jaccard[1:p] = jaccard[1:p] - jaccard[0:-1]
     return jaccard
 
@@ -49,7 +51,7 @@ def iou_binary(preds, labels, EMPTY=1., ignore=None, per_image=True):
         else:
             iou = float(intersection) / float(union)
         ious.append(iou)
-    iou = mean(ious)    # mean accross images if per_image
+    iou = mean(ious)  # mean accross images if per_image
     return 100 * iou
 
 
@@ -61,9 +63,9 @@ def iou(preds, labels, C, EMPTY=1., ignore=None, per_image=False):
         preds, labels = (preds,), (labels,)
     ious = []
     for pred, label in zip(preds, labels):
-        iou = []    
+        iou = []
         for i in range(C):
-            if i != ignore: # The ignored label is sometimes among predicted classes (ENet - CityScapes)
+            if i != ignore:  # The ignored label is sometimes among predicted classes (ENet - CityScapes)
                 intersection = ((label == i) & (pred == i)).sum()
                 union = ((label == i) | ((pred == i) & (label != ignore))).sum()
                 if not union:
@@ -71,7 +73,7 @@ def iou(preds, labels, C, EMPTY=1., ignore=None, per_image=False):
                 else:
                     iou.append(float(intersection) / float(union))
         ious.append(iou)
-    ious = [mean(iou) for iou in zip(*ious)] # mean accross images if per_image
+    ious = [mean(iou) for iou in zip(*ious)]  # mean accross images if per_image
     return 100 * np.array(ious)
 
 
@@ -88,7 +90,7 @@ def lovasz_hinge(logits, labels, per_image=True, ignore=None):
     """
     if per_image:
         loss = mean(lovasz_hinge_flat(*flatten_binary_scores(log.unsqueeze(0), lab.unsqueeze(0), ignore))
-                          for log, lab in zip(logits, labels))
+                    for log, lab in zip(logits, labels))
     else:
         loss = lovasz_hinge_flat(*flatten_binary_scores(logits, labels, ignore))
     return loss
@@ -131,11 +133,12 @@ def flatten_binary_scores(scores, labels, ignore=None):
 
 class StableBCELoss(torch.nn.modules.Module):
     def __init__(self):
-         super(StableBCELoss, self).__init__()
+        super(StableBCELoss, self).__init__()
+
     def forward(self, input, target):
-         neg_abs = - input.abs()
-         loss = input.clamp(min=0) - input * target + (1 + neg_abs.exp()).log()
-         return loss.mean()
+        neg_abs = - input.abs()
+        loss = input.clamp(min=0) - input * target + (1 + neg_abs.exp()).log()
+        return loss.mean()
 
 
 def binary_xloss(logits, labels, ignore=None):
@@ -165,7 +168,7 @@ def lovasz_softmax(probas, labels, classes='present', per_image=False, ignore=No
     """
     if per_image:
         loss = mean(lovasz_softmax_flat(*flatten_probas(prob.unsqueeze(0), lab.unsqueeze(0), ignore), classes=classes)
-                          for prob, lab in zip(probas, labels))
+                    for prob, lab in zip(probas, labels))
     else:
         loss = lovasz_softmax_flat(*flatten_probas(probas, labels, ignore), classes=classes)
     return loss
@@ -185,8 +188,8 @@ def lovasz_softmax_flat(probas, labels, classes='present'):
     losses = []
     class_to_sum = list(range(C)) if classes in ['all', 'present'] else classes
     for c in class_to_sum:
-        fg = (labels == c).float() # foreground for class c
-        if (classes is 'present' and fg.sum() == 0):
+        fg = (labels == c).float()  # foreground for class c
+        if (classes is 'present') and (fg.sum() == 0):
             continue
         if C == 1:
             if len(classes) > 1:
@@ -201,6 +204,7 @@ def lovasz_softmax_flat(probas, labels, classes='present'):
         losses.append(torch.dot(errors_sorted, Variable(lovasz_grad(fg_sorted))))
     return mean(losses)
 
+
 def flatten_probas(probas, labels, ignore=None):
     """
     Flattens predictions in the batch
@@ -210,9 +214,9 @@ def flatten_probas(probas, labels, ignore=None):
         B, H, W = probas.size()
         probas = probas.view(B, 1, H, W)
     elif probas.dim() == 5:
-        #3D segmentation
+        # 3D segmentation
         B, C, L, H, W = probas.size()
-        probas = probas.contiguous().view(B, C, L, H*W)
+        probas = probas.contiguous().view(B, C, L, H * W)
     B, C, H, W = probas.size()
     probas = probas.permute(0, 2, 3, 1).contiguous().view(-1, C)  # B * H * W, C = P, C
     labels = labels.view(-1)
@@ -223,15 +227,17 @@ def flatten_probas(probas, labels, ignore=None):
     vlabels = labels[valid]
     return vprobas, vlabels
 
-#--------------------------------------------------------------------------------------------------------------------#
-#---------------------- segmentation confidence probability waited loss function---------------------#
+
+# --------------------------------------------------------------------------------------------------------------------#
+# ---------------------- segmentation confidence probability waited loss function---------------------#
 
 def cross_entropy_lcw(probas, labels, ignore_label=0, weights=None, lcw=None):
-    raw_loss_funs = torch.nn.CrossEntropyLoss(ignore_index=ignore_label, reduction='none')  # weight label as GT and pseudo
-    #los_func = torch.nn.CrossEntropyLoss(ignore_index=ignore_label)
+    raw_loss_funs = torch.nn.CrossEntropyLoss(ignore_index=ignore_label,
+                                              reduction='none')  # weight label as GT and pseudo
+    # los_func = torch.nn.CrossEntropyLoss(ignore_index=ignore_label)
     if lcw is not None:
-        #loss = los_func(probas, labels)
-        norm_lcw = (lcw/100.0)
+        # loss = los_func(probas, labels)
+        norm_lcw = (lcw / 100.0)
         raw_loss = raw_loss_funs(probas, labels)
         weighted_loss = (raw_loss * lcw).mean()
     else:
@@ -250,11 +256,13 @@ def lovasz_softmax_lcw(probas, labels, classes='present', per_image=False, ignor
       ignore: void class labels
     """
     if per_image:
-        loss = mean(lovasz_softmax_flat_lcw(*flatten_probas_lcw(prob.unsqueeze(0), lab.unsqueeze(0), ignore, lcw), classes=classes)
-                          for prob, lab in zip(probas, labels))
+        loss = mean(lovasz_softmax_flat_lcw(*flatten_probas_lcw(prob.unsqueeze(0), lab.unsqueeze(0), ignore, lcw),
+                                            classes=classes)
+                    for prob, lab in zip(probas, labels))
     else:
         loss = lovasz_softmax_flat_lcw(*flatten_probas_lcw(probas, labels, ignore, lcw), classes=classes)
     return loss
+
 
 def lovasz_softmax_flat_lcw(probas, labels, lcw=None, classes='present'):
     """
@@ -270,7 +278,7 @@ def lovasz_softmax_flat_lcw(probas, labels, lcw=None, classes='present'):
     losses = []
     class_to_sum = list(range(C)) if classes in ['all', 'present'] else classes
     for c in class_to_sum:
-        fg = (labels == c).float() # foreground for class c
+        fg = (labels == c).float()  # foreground for class c
         if (classes is 'present' and fg.sum() == 0):
             continue
         if C == 1:
@@ -281,14 +289,13 @@ def lovasz_softmax_flat_lcw(probas, labels, lcw=None, classes='present'):
             class_pred = probas[:, c]
         errors = (Variable(fg) - class_pred).abs()
         # multiply loss/error by the confidence probability
-        norm_lcw = (lcw/100.0)
+        norm_lcw = (lcw / 100.0)
         errors *= norm_lcw
         errors_sorted, perm = torch.sort(errors, 0, descending=True)
         perm = perm.data
         fg_sorted = fg[perm]
         losses.append(torch.dot(errors_sorted, Variable(lovasz_grad(fg_sorted))))
     return mean(losses)
-
 
 
 def flatten_probas_lcw(probas, labels, ignore=None, lcw=None):
@@ -300,9 +307,9 @@ def flatten_probas_lcw(probas, labels, ignore=None, lcw=None):
         B, H, W = probas.size()
         probas = probas.view(B, 1, H, W)
     elif probas.dim() == 5:
-        #3D segmentation
+        # 3D segmentation
         B, C, L, H, W = probas.size()
-        probas = probas.contiguous().view(B, C, L, H*W)
+        probas = probas.contiguous().view(B, C, L, H * W)
     B, C, H, W = probas.size()
     probas = probas.permute(0, 2, 3, 1).contiguous().view(-1, C)  # B * H * W, C = P, C
     labels = labels.view(-1)
@@ -315,8 +322,9 @@ def flatten_probas_lcw(probas, labels, ignore=None, lcw=None):
     vlcw = lcw[valid]
     return vprobas, vlabels, vlcw
 
-#---------------------End of prediction confidence weighted lovasz_softmax loss ----------------------------#
-#--------------------------------------------------------------------------------------------------------------------#
+
+# ---------------------End of prediction confidence weighted lovasz_softmax loss ----------------------------#
+# --------------------------------------------------------------------------------------------------------------------#
 
 def xloss(logits, labels, ignore=None):
     """
@@ -324,7 +332,8 @@ def xloss(logits, labels, ignore=None):
     """
     return F.cross_entropy(logits, Variable(labels), ignore_index=255)
 
-def jaccard_loss(probas, labels,ignore=None, smooth = 100, bk_class = None):
+
+def jaccard_loss(probas, labels, ignore=None, smooth=100, bk_class=None):
     """
     Something wrong with this loss
     Multi-class Lovasz-Softmax loss
@@ -336,23 +345,23 @@ def jaccard_loss(probas, labels,ignore=None, smooth = 100, bk_class = None):
       ignore: void class labels
     """
     vprobas, vlabels = flatten_probas(probas, labels, ignore)
-    
-    
+
     true_1_hot = torch.eye(vprobas.shape[1])[vlabels]
-    
+
     if bk_class:
         one_hot_assignment = torch.ones_like(vlabels)
         one_hot_assignment[vlabels == bk_class] = 0
         one_hot_assignment = one_hot_assignment.float().unsqueeze(1)
-        true_1_hot = true_1_hot*one_hot_assignment
-    
+        true_1_hot = true_1_hot * one_hot_assignment
+
     true_1_hot = true_1_hot.to(vprobas.device)
     intersection = torch.sum(vprobas * true_1_hot)
     cardinality = torch.sum(vprobas + true_1_hot)
     loss = (intersection + smooth / (cardinality - intersection + smooth)).mean()
-    return (1-loss)*smooth
+    return (1 - loss) * smooth
 
-def hinge_jaccard_loss(probas, labels,ignore=None, classes = 'present', hinge = 0.1, smooth =100):
+
+def hinge_jaccard_loss(probas, labels, ignore=None, classes='present', hinge=0.1, smooth=100):
     """
     Multi-class Hinge Jaccard loss
       probas: [B, C, H, W] Variable, class probabilities at each prediction (between 0 and 1).
@@ -368,31 +377,32 @@ def hinge_jaccard_loss(probas, labels,ignore=None, classes = 'present', hinge = 
     for c in class_to_sum:
         if c in vlabels:
             c_sample_ind = vlabels == c
-            cprobas = vprobas[c_sample_ind,:]
-            non_c_ind =np.array([a for a in class_to_sum if a != c])
-            class_pred = cprobas[:,c]
-            max_non_class_pred = torch.max(cprobas[:,non_c_ind],dim = 1)[0]
-            TP = torch.sum(torch.clamp(class_pred - max_non_class_pred, max = hinge)+1.) + smooth
-            FN = torch.sum(torch.clamp(max_non_class_pred - class_pred, min = -hinge)+hinge)
-            
+            cprobas = vprobas[c_sample_ind, :]
+            non_c_ind = np.array([a for a in class_to_sum if a != c])
+            class_pred = cprobas[:, c]
+            max_non_class_pred = torch.max(cprobas[:, non_c_ind], dim=1)[0]
+            TP = torch.sum(torch.clamp(class_pred - max_non_class_pred, max=hinge) + 1.) + smooth
+            FN = torch.sum(torch.clamp(max_non_class_pred - class_pred, min=-hinge) + hinge)
+
             if (~c_sample_ind).sum() == 0:
                 FP = 0
             else:
-                nonc_probas = vprobas[~c_sample_ind,:]
-                class_pred = nonc_probas[:,c]
-                max_non_class_pred = torch.max(nonc_probas[:,non_c_ind],dim = 1)[0]
-                FP = torch.sum(torch.clamp(class_pred - max_non_class_pred, max = hinge)+1.)
-            
-            losses.append(1 - TP/(TP+FP+FN))
-    
+                nonc_probas = vprobas[~c_sample_ind, :]
+                class_pred = nonc_probas[:, c]
+                max_non_class_pred = torch.max(nonc_probas[:, non_c_ind], dim=1)[0]
+                FP = torch.sum(torch.clamp(class_pred - max_non_class_pred, max=hinge) + 1.)
+
+            losses.append(1 - TP / (TP + FP + FN))
+
     if len(losses) == 0: return 0
     return mean(losses)
+
 
 # --------------------------- HELPER FUNCTIONS ---------------------------
 def isnan(x):
     return x != x
-    
-    
+
+
 def mean(l, ignore_nan=False, empty=0):
     """
     nanmean compatible with generators.

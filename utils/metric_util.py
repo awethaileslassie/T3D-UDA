@@ -22,9 +22,10 @@ def fast_hist_crop(output, target, unique_label):
     hist = hist[:, unique_label + 1]
     return hist
 
+
 # TODO: check if this implemented correctly
 def fast_ups_crop(uncrt, target, unique_label):
-    hist = [np.sum(uncrt[target==i]) for i in range(20)]
+    hist = [np.sum(uncrt[target == i]) for i in range(20)]
     va, cla_count = np.unique(target, return_counts=True)
     class_count = np.zeros(20)
     class_count[va] = cla_count

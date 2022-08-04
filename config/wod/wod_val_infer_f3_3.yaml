@@ -53,7 +53,7 @@ val_data_loader:
   batch_size: 3
   shuffle: False
   num_workers: 0
-  
+
 test_data_loader:
   data_path: "/mnt/beegfs/gpu/argoverse-tracking-all-training/WOD/processed/ALL/validation"
   imageset: "test"
@@ -84,6 +84,6 @@ train_params:
   T_past: 3
   T_future: 3
   ssl: False
-  rgb: False  
+  rgb: False
   uda: True
   time: True

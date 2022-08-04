@@ -6,7 +6,7 @@
         <remote-mappings server-id="python@sftp://gebreawe@127.0.0.1:6263/home/gebreawe/slurmPyCylinder">
           <settings>
             <list>
-              <mapping local-root="$PROJECT_DIR$" remote-root="/home/gebreawe/Code/Segmentation/ST-UDA" />
+              <mapping local-root="$PROJECT_DIR$" remote-root="/home/gebreawe/Code/Segmentation/T-UDA" />
             </list>
           </settings>
         </remote-mappings>

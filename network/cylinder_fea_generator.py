@@ -4,9 +4,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-import numba as nb
-import multiprocessing
 import torch_scatter
 
 
@@ -60,7 +57,7 @@ class cylinder_fea(nn.Module):
         # for i_batch in range(len(xy_ind)):
         #     cat_pt_ind.append(F.pad(xy_ind[i_batch], (1, 0), 'constant', value=i_batch))
         # Awet Optimized append into list comprehension for faster runtime
-        cat_pt_ind = [F.pad(xy_ind[i_batch], (1, 0), 'constant', value=i_batch) for i_batch in range(len(xy_ind)) ]
+        cat_pt_ind = [F.pad(xy_ind[i_batch], (1, 0), 'constant', value=i_batch) for i_batch in range(len(xy_ind))]
 
         cat_pt_fea = torch.cat(pt_fea, dim=0)
         cat_pt_ind = torch.cat(cat_pt_ind, dim=0)

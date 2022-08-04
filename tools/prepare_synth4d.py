@@ -2,23 +2,11 @@
 # author: Awet H. Gebrehiowt
 
 
-import os
-import time
-import argparse
-import sys
-import numpy as np
-
-import numpy as np
 import glob
-from multiprocessing import Pool
 import os
-import shutil
-import random
-import math
 
 
 def main():
-
     source = '/mnt/beegfs/gpu/argoverse-tracking-all-training/Synth4D/nuscenes_synth'
 
     sequence = os.listdir(source)
@@ -39,13 +27,14 @@ def main():
             if not os.path.exists(dest_poses):
                 os.mkdir(dest_poses)
 
-            os.rename(os.path.join(source, sq, "velodyne", str(frame) + '.npy'), os.path.join(dest_lidar, frame_name + '.npy'))
-            os.rename(os.path.join(source, sq, "labels", str(frame) + '.npy'), os.path.join(dest_labels, frame_name + '.npy'))
-            os.rename(os.path.join(source, sq, "calib", str(frame) + '.npy'), os.path.join(dest_poses, frame_name + '.npy'))
-
+            os.rename(os.path.join(source, sq, "velodyne", str(frame) + '.npy'),
+                      os.path.join(dest_lidar, frame_name + '.npy'))
+            os.rename(os.path.join(source, sq, "labels", str(frame) + '.npy'),
+                      os.path.join(dest_labels, frame_name + '.npy'))
+            os.rename(os.path.join(source, sq, "calib", str(frame) + '.npy'),
+                      os.path.join(dest_poses, frame_name + '.npy'))
 
 
 if __name__ == '__main__':
-
     main()
     print(f"------------------------------Task finished-------------------------")

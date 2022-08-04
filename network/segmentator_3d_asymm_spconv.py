@@ -4,7 +4,7 @@
 # @file: segmentator_3d_asymm_spconv.py
 
 import numpy as np
-#import spconv
+# import spconv
 import spconv.pytorch as spconv
 import torch
 from torch import nn
@@ -51,8 +51,8 @@ class ResContextBlock(nn.Module):
         self.conv1 = conv1x3(in_filters, out_filters, indice_key=indice_key + "bef")
         self.bn0 = nn.BatchNorm1d(out_filters)
         self.act1 = nn.LeakyReLU()
-          
-        #elf.conv1_2 = conv3x1(out_filters, out_filters, indice_key=indice_key + "bef")
+
+        # elf.conv1_2 = conv3x1(out_filters, out_filters, indice_key=indice_key + "bef")
         self.conv1_2 = conv1x3(out_filters, out_filters, indice_key=indice_key + "bef")
 
         self.bn0_2 = nn.BatchNorm1d(out_filters)
@@ -62,7 +62,7 @@ class ResContextBlock(nn.Module):
         self.act2 = nn.LeakyReLU()
         self.bn1 = nn.BatchNorm1d(out_filters)
 
-        #self.conv3 = conv1x3(out_filters, out_filters, indice_key=indice_key + "bef")
+        # self.conv3 = conv1x3(out_filters, out_filters, indice_key=indice_key + "bef")
         self.conv3 = conv3x1(out_filters, out_filters, indice_key=indice_key + "bef")
         self.act3 = nn.LeakyReLU()
         self.bn2 = nn.BatchNorm1d(out_filters)
@@ -101,7 +101,7 @@ class ResBlock(nn.Module):
                  pooling=True, drop_out=True, height_pooling=False, indice_key=None):
         super(ResBlock, self).__init__()
         self.pooling = pooling
-        #self.drop_out = drop_out
+        # self.drop_out = drop_out
 
         self.conv1 = conv3x1(in_filters, out_filters, indice_key=indice_key + "bef")
         self.act1 = nn.LeakyReLU()
@@ -165,7 +165,7 @@ class ResBlock(nn.Module):
 class UpBlock(nn.Module):
     def __init__(self, in_filters, out_filters, kernel_size=(3, 3, 3), indice_key=None, up_key=None, dropout_rate=0.25):
         super(UpBlock, self).__init__()
-        #self.drop_out = drop_out
+        # self.drop_out = drop_out
         self.trans_dilao = conv3x3(in_filters, out_filters, indice_key=indice_key + "new_up")
         self.trans_act = nn.LeakyReLU()
         self.trans_bn = nn.BatchNorm1d(out_filters)
@@ -174,19 +174,20 @@ class UpBlock(nn.Module):
         self.act1 = nn.LeakyReLU()
         self.bn1 = nn.BatchNorm1d(out_filters)
 
-        #self.conv3 = conv3x1(out_filters, out_filters, indice_key=indice_key + "bef")
+        # self.conv3 = conv3x1(out_filters, out_filters, indice_key=indice_key + "bef")
         self.conv2 = conv1x3(out_filters, out_filters, indice_key=indice_key)
         self.act2 = nn.LeakyReLU()
         self.bn2 = nn.BatchNorm1d(out_filters)
 
-        #self.conv3 = conv3x3(out_filters, out_filters, indice_key=indice_key)
+        # self.conv3 = conv3x3(out_filters, out_filters, indice_key=indice_key)
         self.conv3 = conv1x3(out_filters, out_filters, indice_key=indice_key)
         self.act3 = nn.LeakyReLU()
         self.bn3 = nn.BatchNorm1d(out_filters)
         # TODO: commnet this drop out after experiment
         # self.dropout3 = nn.Dropout3d(p=dropout_rate) # added by me
 
-        self.up_subm = spconv.SparseInverseConv3d(out_filters, out_filters, kernel_size=3, indice_key=up_key, bias=False)
+        self.up_subm = spconv.SparseInverseConv3d(out_filters, out_filters, kernel_size=3, indice_key=up_key,
+                                                  bias=False)
 
         self.weight_initialization()
 
@@ -219,8 +220,7 @@ class UpBlock(nn.Module):
 
         # TODO: comment this drop out after experiment
         # upE = upE.replace_feature(self.bn3(self.dropout3(upE.features))) # added by me
-        upE = upE.replace_feature(self.bn3(upE.features)) # original implementation
-
+        upE = upE.replace_feature(self.bn3(upE.features))  # original implementation
 
         return upE
 

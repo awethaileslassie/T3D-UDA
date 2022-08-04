@@ -2,10 +2,11 @@
 # author: Xinge
 # @file: dataset_nuscenes.py
 
+import numba as nb
 import numpy as np
 import torch
-import numba as nb
 from torch.utils import data
+
 from dataloader.dataset_semantickitti import register_dataset
 
 
@@ -158,7 +159,6 @@ def collate_fn_BEV(data):
     point_label = [d[3] for d in data]
     xyz = [d[4] for d in data]
     return torch.from_numpy(data2stack), torch.from_numpy(label2stack), grid_ind_stack, point_label, xyz
-
 
 # SemKITTI_label_name = {0: 'noise',
 #                        1: 'animal',
