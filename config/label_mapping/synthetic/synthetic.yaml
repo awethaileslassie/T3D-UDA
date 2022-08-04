@@ -28,39 +28,39 @@ labels:
 # classes that are indistinguishable from single scan or inconsistent in
 # ground truth are mapped to their closest equivalent
 learning_map:
-  0 : -1
-  1 : 5
-  2 : 5
-  3 : -1
-  4 : 1
-  5 : 5
-  6 : 2
-  7 : 2
-  8 : 3
-  9 : 6
-  10 : 0
-  11 : 5
-  12 : 5
-  13 : -1
-  14 : -1
-  15 : 5
-  16 : 5
-  17 : 5
-  18 : -1
-  19 : -1
-  20 : -1
-  21 : -1
-  22 : 4
+  0 : 0
+  1 : 7 # building
+  2 : 7 # fence  --> mapped to "building"
+  3 : 0 # other  --> mapped to "undefined"
+  4 : 3 # pedestrian
+  5 : 5 # pole
+  6 : 10 # roadlines  --> mapped to "road"
+  7 : 10 # road
+  8 : 10 # sidewalk  --> mapped to "road"
+  9 : 8 # vegetation
+  10 : 1 # vehicle/car
+  11 : 7 # wall  --> mapped to "building"
+  12 : 4 # trafficsign --> mapped to "sign"
+  13 : 0 # sky --> mapped to "undefined"
+  14 : 10 # grond  --> mapped to "road"
+  15 : 7 # bridge --> mapped to "building"
+  16 : 7 # railtrack  --> mapped to "building"
+  17 : 7 # guardrail --> mapped to "building"
+  18 : 4 # traficlight --> mapped to "sign"
+  19 : 0 # static --> mapped to "undefined"
+  20 : 0 # dynamic --> mapped to "undefined"
+  21 : 11 # water --> mapped to "undefined"
+  22 : 11 # terrain --> mapped to "grond"
 
 learning_map_inv: # inverse of previous map
-  -1 : 0
-  0 : 1
-  1 : 4
-  2 : 7
-  3 : 8
-  4 : 22
-  5 : 1
-  6 : 9
+  0 : 0
+  1 : 1
+  2 : 4
+  3 : 7
+  4 : 8
+  5 : 22
+  6 : 1
+  7 : 9
 
 learning_ignore: # Ignore classes
   -1: True      # "unlabeled", and others ignored

@@ -109,10 +109,10 @@ content: # as a ratio with the total number of points
 learning_map:
   0: 0 # "unlabeled"
   1: 0 # "outlier" mapped to "unlabeled" --------------------------mapped
-  10: 3 # "car"
-  11: 11 # "bicycle"
-  13: 3 # "bus" mapped to "other-vehicle" --------------------------mapped
-  15: 3 # "motorcycle"
+  10: 1 # "car"
+  11: 6 # "bicycle" --> mapped to "bike"
+  13: 1 # "bus" mapped to "vehicle" --------------------------mapped
+  15: 6 # "motorcycle" --> mapped to "bike"
   16: 3 # "on-rails" mapped to "other-vehicle" ---------------------mapped
   18: 3 # "truck"
   20: 3 # "other-vehicle"
@@ -143,9 +143,9 @@ learning_map:
   259: 3 # "moving-other"-vehicle to "other-vehicle" ----------------mapped
 learning_map_inv: # inverse of previous map
   0: 0 # "unlabeled", and others ignored
-  1: 30 # "person"
+  3: 30 # "person"
   2: 31 # "bicyclist"
-  3: 10 # "car"
+  1: 10 # "car"
   4: 71 # "trunk"
   5: 70 # "vegetation"
   6: 81 # "traffic-sign"
