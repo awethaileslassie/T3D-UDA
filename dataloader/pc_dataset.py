@@ -257,7 +257,7 @@ def transform_pcl_scan(points, pose0, pose):
 
 
 def fuse_multiscan(ref_raw_data, ref_annotated_data, ref_lcw, transformed_data,
-                   transformed_annotated_data, transformed_lcw, source):
+                   transformed_annotated_data, transformed_lcw, source, ssl):
     lcw = None
     if (source != 1) and (source != -1):
         print(f"Error data source {source} not Implemented")
@@ -302,7 +302,7 @@ def get_combined_data(raw_data, annotated_data, lcw, learning_map, return_ref, o
 @register_dataset
 class SemKITTI_sk_multiscan(data.Dataset):
     def __init__(self, data_path, imageset='train', return_ref=False, label_mapping="semantic-kitti-multiscan.yaml",
-                 nusc=None, wod=None, ssl_data_path=None):
+                 train_hypers=None, wod=None, ssl_data_path=None):
         global past, future, ssl, T_past, T_fture
         with open(label_mapping, 'r') as stream:
             semkittiyaml = yaml.safe_load(stream)
@@ -311,15 +311,15 @@ class SemKITTI_sk_multiscan(data.Dataset):
         self.learning_map = semkittiyaml['learning_map']
         self.imageset = imageset
         self.data_path = data_path
-        multiscan = past  # 2 #1 #2 # additional two frames are fused with target-frame. Hence, 3 point clouds in total
-        self.multiscan = multiscan
-        self.past = past
-        self.future = future
-        self.T_past = T_past
-        self.T_future = T_future
+        self.past = train_hypers['past']
+        self.future = train_hypers['future']
+        self.T_past = train_hypers['T_past']
+        self.T_future = train_hypers['T_future']
+        self.rgb = train_hypers['rgb']
+        self.ssl = train_hypers['ssl']
+        self.use_time = train_hypers['time']  # Use time instead of intensity
+        self.UDA = train_hypers['uda']
         self.im_idx = []
-        self.use_time = True
-        self.UDA = True
 
         self.calibrations = []
         # self.times = []
@@ -327,7 +327,7 @@ class SemKITTI_sk_multiscan(data.Dataset):
 
         if imageset == 'train':
             self.split = semkittiyaml['split']['train']
-            if ssl and (ssl_data_path is not None):
+            if self.ssl and (ssl_data_path is not None):
                 self.split += semkittiyaml['split']['pseudo']
         elif imageset == 'val':
             self.split = semkittiyaml['split']['valid']
@@ -433,7 +433,7 @@ class SemKITTI_sk_multiscan(data.Dataset):
 
     def get_semantickitti_data(self, newpath, time_frame_idx):
         raw_data = np.fromfile(newpath, dtype=np.float32).reshape((-1, 4))
-
+        lcw = None
         if self.use_time:
             raw_data[:, 3] = np.ones_like(raw_data[:, 3]) * time_frame_idx
 
@@ -443,7 +443,7 @@ class SemKITTI_sk_multiscan(data.Dataset):
         if self.imageset == 'test':
             annotated_data = np.expand_dims(np.zeros_like(raw_data[:, 0], dtype=int), axis=1)
         else:
-            if ssl and exists(newpath.replace('velodyne', f"predictions_f{self.T_past}_{self.T_future}")[:-3]
+            if self.ssl and exists(newpath.replace('velodyne', f"predictions_f{self.T_past}_{self.T_future}")[:-3]
                               + 'label'):
                 annotated_data = np.fromfile(
                     newpath.replace('velodyne', f"predictions_f{self.T_past}_{self.T_future}")[:-3] + 'label',
@@ -453,8 +453,8 @@ class SemKITTI_sk_multiscan(data.Dataset):
                                              dtype=np.int32).reshape((-1, 1))
             annotated_data = annotated_data & 0xFFFF  # delete high 16 digits binary
 
-            lcw = None
-            if ssl and exists(newpath.replace('velodyne', f"probability_f{self.T_past}_{self.T_future}")[
+
+            if self.ssl and exists(newpath.replace('velodyne', f"probability_f{self.T_past}_{self.T_future}")[
                               :-3] + 'label'):
                 lcw = np.fromfile(
                     newpath.replace('velodyne', f"probability_f{self.T_past}_{self.T_future}")[
@@ -463,7 +463,7 @@ class SemKITTI_sk_multiscan(data.Dataset):
                 # TODO: check casting
                 lcw = (lcw * 100).astype(np.int32)
 
-            elif ssl:  # in case of GT label give weight = 1.0 per label
+            elif self.ssl:  # in case of GT label give weight = 1.0 per label
                 lcw = np.expand_dims(np.ones_like(raw_data[:, 0], dtype=np.float32), axis=1)
                 # TODO: check casting
                 lcw = (lcw * 100).astype(np.int32)
@@ -534,7 +534,7 @@ class SemKITTI_sk_multiscan(data.Dataset):
                 # past frames
                 if past_data_len != 0:
                     raw_data, annotated_data, lcw = fuse_multiscan(raw_data, annotated_data, lcw,
-                                                                   past_raw_data, past_annotated_data, past_lcw, -1)
+                                                                   past_raw_data, past_annotated_data, past_lcw, -1, self.ssl)
                     # count number of past frame points
                     past_frame_len += past_data_len
 
@@ -556,13 +556,13 @@ class SemKITTI_sk_multiscan(data.Dataset):
                 # TODO: check correctness (future frame)
                 if future_data_len != 0:
                     raw_data, annotated_data, lcw = fuse_multiscan(raw_data, annotated_data, lcw,
-                                                                   future_raw_data, future_annotated_data, future_lcw, 1)
+                                                                   future_raw_data, future_annotated_data, future_lcw, 1, self.ssl)
                     # count number of future frame points
                     future_frame_len += future_data_len
 
         # extract compiled data_tuple
         data_tuple = get_combined_data(raw_data, annotated_data, lcw, self.learning_map, self.return_ref,
-                                       origin_len, past_frame_len, ssl)
+                                       origin_len, past_frame_len, self.ssl)
 
         # # TODO: added the future frame availability check
 
@@ -589,7 +589,7 @@ class SemKITTI_sk_multiscan(data.Dataset):
 @register_dataset
 class WOD_multiscan(data.Dataset):
     def __init__(self, data_path, imageset='train', return_ref=False, label_mapping="wod-multiscan_labelled.yaml",
-                 nusc=None, wod=None, ssl_data_path=None):
+                 train_hypers=None, wod=None, ssl_data_path=None):
         global past, future, ssl, T_past, T_fture, rgb
         self.return_ref = return_ref
         with open(label_mapping, 'r') as stream:
@@ -597,21 +597,22 @@ class WOD_multiscan(data.Dataset):
         self.learning_map = wodyaml['learning_map']
         self.imageset = imageset
         self.data_path = data_path
-        self.past = past
-        self.future = future
-        self.T_past = T_past
-        self.T_future = T_future
+        self.past = train_hypers['past']
+        self.future = train_hypers['future']
+        self.T_past = train_hypers['T_past']
+        self.T_future = train_hypers['T_future']
+        self.rgb = train_hypers['rgb']
+        self.ssl = train_hypers['ssl']
+        self.use_time = train_hypers['time']  # Use time instead of intensity
+        self.UDA = train_hypers['uda']
         self.im_idx = []
-        self.use_time = True  # Use time instead of intensity
-        self.UDA = False
-
         self.calibrations = []
         # self.times = []
-        self.poses = []
+        self.poses = {}
 
         if imageset == 'train':
             self.split = wodyaml['split']['train']
-            if ssl and (ssl_data_path is not None):
+            if self.ssl and (ssl_data_path is not None):
                 self.split += wodyaml['split']['pseudo']
         elif imageset == 'val':
             self.split = wodyaml['split']['valid']
@@ -699,7 +700,7 @@ class WOD_multiscan(data.Dataset):
             raw_data[:, 2] += 2.0  # elevate the point cloud two meters up to align with WOD
 
         # TODO: check if the colors are encoded correctly instead of the lidar intensity
-        if rgb:
+        if self.rgb:
             # load rgb colors for each points
             raw_rgb = np.load(newpath.replace('lidar', 'colors')[
                               :-3] + 'npy')
@@ -713,13 +714,13 @@ class WOD_multiscan(data.Dataset):
             # replace intensity with gray scale camera image/frame color
             raw_data[:, 3] = raw_gray
             # raw_data[:,4] = gray_mask * 1
-
+        lcw = None
         origin_len = len(raw_data)
         if self.imageset == 'test':
             annotated_data = np.expand_dims(np.zeros_like(raw_data[:, 0]), axis=1).reshape((-1, 1))
         else:
             # x = self.im_idx[index].replace('lidar', f"predictions_f{self.T_past}_{self.T_future}")[:-3] + 'label'
-            if ssl and exists(newpath.replace('lidar', f"predictions_f{self.T_past}_{self.T_future}")[
+            if self.ssl and exists(newpath.replace('lidar', f"predictions_f{self.T_past}_{self.T_future}")[
                               :-3] + 'npy'):
                 annotated_data = np.load(
                     newpath.replace('lidar', f"predictions_f{self.T_past}_{self.T_future}")[
@@ -733,14 +734,14 @@ class WOD_multiscan(data.Dataset):
 
             annotated_data = annotated_data & 0xFFFF  # delete high 16 digits binary
 
-            lcw = None
-            if ssl and exists(newpath.replace('lidar', f"probability_f{self.T_past}_{self.T_future}")[
+
+            if self.ssl and exists(newpath.replace('lidar', f"probability_f{self.T_past}_{self.T_future}")[
                               :-3] + 'npy'):
                 lcw = np.load(newpath.replace('lidar', f"probability_f{self.T_past}_{self.T_future}")[
                               :-3] + 'npy').reshape((-1, 1))
                 # TODO: check casting
                 lcw = (lcw * 100).astype(np.int32)
-            elif ssl:  # in case of GT label give weight = 1.0 per label
+            elif self.ssl:  # in case of GT label give weight = 1.0 per label
                 lcw = np.expand_dims(np.ones_like(raw_data[:, 0]), axis=1)
                 # TODO: check casting
                 lcw = (lcw * 100).astype(np.int32)
@@ -808,7 +809,8 @@ class WOD_multiscan(data.Dataset):
         number_idx = int(self.im_idx[index][-10:-4])
         # dir_idx = int(self.im_idx[index][-22:-20])
         dir_idx = self.im_idx[index].split('/')[-3]
-        pose0 = self.poses[dir_idx][number_idx]
+        if self.past or self.future:
+            pose0 = self.poses[dir_idx][number_idx]
 
         # past scan
         past_frame_len = 0
@@ -827,7 +829,7 @@ class WOD_multiscan(data.Dataset):
                 # past frames
                 if past_data_len != 0:
                     raw_data, annotated_data, lcw = fuse_multiscan(raw_data, annotated_data, lcw,
-                                                                   past_raw_data, past_annotated_data, past_lcw, -1)
+                                                                   past_raw_data, past_annotated_data, past_lcw, -1, self.ssl)
                     # count number of past frame points
                     past_frame_len += past_data_len
 
@@ -850,13 +852,13 @@ class WOD_multiscan(data.Dataset):
                 # TODO: check correctness (future frame)
                 if future_data_len != 0:
                     raw_data, annotated_data, lcw = fuse_multiscan(raw_data, annotated_data, lcw,
-                                                                   future_raw_data, future_annotated_data, future_lcw, 1)
+                                                                   future_raw_data, future_annotated_data, future_lcw, 1, self.ssl)
                     # count number of future frame points
                     future_frame_len += future_data_len
 
         # extract compiled data_tuple
         data_tuple = get_combined_data(raw_data, annotated_data, lcw, self.learning_map, self.return_ref,
-                                       origin_len, past_frame_len, ssl)
+                                       origin_len, past_frame_len, self.ssl)
 
         return data_tuple
 
