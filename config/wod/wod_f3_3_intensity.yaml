@@ -55,7 +55,7 @@ val_data_loader:
   num_workers: 0
   
 test_data_loader:
-  data_path: "/mnt/beegfs/gpu/argoverse-tracking-all-training/WOD/processed/ALL/validation"
+  data_path: "/mnt/beegfs/gpu/argoverse-tracking-all-training/WOD/processed/Unlabeled/testing"
   imageset: "test"
   return_ref: True
   batch_size: 4
@@ -63,27 +63,28 @@ test_data_loader:
   num_workers: 4
 
 ssl_data_loader:
-  data_path: "/mnt/beegfs/gpu/argoverse-tracking-all-training/WOD/processed/ALL/validation"
+  data_path: "/mnt/beegfs/gpu/argoverse-tracking-all-training/WOD/processed/Unlabeled/testing"
   imageset: "pseudo"
   return_ref: True
   batch_size: 4
   shuffle: False
   num_workers: 4
 
+
 ###################
 ## test params
 train_params:
-  model_load_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST_Cylinder_3D/model_save_dir/wod_save_f3_3_labelled_b3_v3_2.pt"
-  model_save_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST_Cylinder_3D/model_save_dir/wod_save_f3_3_labelled_b3_v3_2.pt"
+  model_load_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST-UDA/model_save_dir/wod_save_f3_3_intensity.pt"
+  model_save_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST-UDA/model_save_dir/wod_save_f3_3_intensity.pt"
   checkpoint_every_n_steps: 1000
   max_num_epochs: 40
   eval_every_n_steps: 1000
-  learning_rate: 0.01
+  learning_rate: 0.001
   past: 3
   future: 3
   T_past: 3
   T_future: 3
   ssl: False
-  rgb: False  
-  uda: True
-  time: True
+  rgb: False
+  uda: False
+  time: False

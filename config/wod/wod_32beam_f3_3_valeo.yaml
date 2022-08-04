@@ -80,9 +80,12 @@ train_params:
   max_num_epochs: 40
   eval_every_n_steps: 1000
   learning_rate: 0.01
-  past: 1
-  future: 1
+  past: 3
+  future: 3
   T_past: 332
   T_future: 332
   ssl: False
-  rgb: False  
+  rgb: False
+  uda: False
+  time: True
+

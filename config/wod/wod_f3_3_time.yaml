@@ -74,8 +74,8 @@ ssl_data_loader:
 ###################
 ## test params
 train_params:
-  model_load_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST_Cylinder_3D/model_save_dir/wod_save_f3_3_labelled_b3_v3_2_time.pt"
-  model_save_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST_Cylinder_3D/model_save_dir/wod_save_f3_3_labelled_b3_v3_2_time.pt"
+  model_load_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST-UDA/model_save_dir/wod_save_f3_3_labelled_b3_v3_2_time.pt"
+  model_save_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST-UDA/model_save_dir/wod_save_f3_3_labelled_b3_v3_2_time.pt"
   checkpoint_every_n_steps: 1000
   max_num_epochs: 40
   eval_every_n_steps: 1000
@@ -85,4 +85,6 @@ train_params:
   T_past: 3
   T_future: 3
   ssl: False
-  rgb: False  
+  rgb: False
+  uda: False
+  time: True

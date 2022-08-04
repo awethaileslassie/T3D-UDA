@@ -42,7 +42,7 @@ train_data_loader:
   data_path: "/mnt/beegfs/gpu/argoverse-tracking-all-training/WOD/processed/Labeled_32_beam/training"
   imageset: "train"
   return_ref: True
-  batch_size: 2 #4
+  batch_size: 3 #4
   shuffle: True
   num_workers: 0
 
@@ -50,7 +50,7 @@ val_data_loader:
   data_path: "/mnt/beegfs/gpu/argoverse-tracking-all-training/WOD/processed/Labeled_32_beam/validation"
   imageset: "val"
   return_ref: True
-  batch_size: 2
+  batch_size: 3
   shuffle: False
   num_workers: 0
   
@@ -74,15 +74,17 @@ ssl_data_loader:
 ###################
 ## test params
 train_params:
-  model_load_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST_Cylinder_3D/model_save_dir/wod_save_f3_3_da_check.pt"
-  model_save_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST_Cylinder_3D/model_save_dir/wod_save_f3_3_da_check.pt"
+  model_load_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST_Cylinder_3D/model_save_dir/wod_save_f3_3_32beam_time.pt"
+  model_save_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST_Cylinder_3D/model_save_dir/wod_save_f3_3_32beam_time.pt"
   checkpoint_every_n_steps: 1000
   max_num_epochs: 40
   eval_every_n_steps: 1000
   learning_rate: 0.001
-  past: 2
-  future: 2
+  past: 3
+  future: 3
   T_past: 3
   T_future: 3
   ssl: False
   rgb: False  
+  uda: False
+  time: True
