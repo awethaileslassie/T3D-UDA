@@ -44,22 +44,22 @@ def build(dataset_config,
     # if we want to train in SSL mode
     if train_hypers and ssl_dataloader_config and train_hypers['ssl']:
         train_pt_dataset = SemKITTI(train_data_path, imageset=train_imageset,
-                                    return_ref=train_ref, label_mapping=label_mapping, nusc=nusc,
+                                    return_ref=train_ref, label_mapping=label_mapping, train_hypers=train_hypers,
                                     ssl_data_path=ssl_data_path)
     else:
         train_pt_dataset = SemKITTI(train_data_path, imageset=train_imageset,
-                                    return_ref=train_ref, label_mapping=label_mapping, nusc=nusc,
+                                    return_ref=train_ref, label_mapping=label_mapping, train_hypers=train_hypers,
                                     ssl_data_path=None)
 
     val_pt_dataset = SemKITTI(val_data_path, imageset=val_imageset,
-                              return_ref=val_ref, label_mapping=label_mapping, nusc=nusc)
+                              return_ref=val_ref, label_mapping=label_mapping, train_hypers=train_hypers)
     if test_dataloader_config is not None:
         test_pt_dataset = SemKITTI(test_data_path, imageset=test_imageset,
-                                   return_ref=test_ref, label_mapping=label_mapping, nusc=nusc)
+                                   return_ref=test_ref, label_mapping=label_mapping, train_hypers=train_hypers)
 
     if ssl_dataloader_config is not None:
         ssl_pt_dataset = SemKITTI(ssl_data_path, imageset=ssl_imageset,
-                                   return_ref=ssl_ref, label_mapping=label_mapping, nusc=nusc)
+                                  return_ref=ssl_ref, label_mapping=label_mapping, train_hypers=train_hypers)
 
     train_dataset = get_model_class(dataset_config['dataset_type'])(
         train_pt_dataset,
@@ -123,9 +123,9 @@ def build(dataset_config,
     ssl_dataset_loader = None
     if ssl_dataloader_config is not None:
         ssl_dataset_loader = torch.utils.data.DataLoader(dataset=ssl_dataset,
-                                                          batch_size=ssl_dataloader_config["batch_size"],
-                                                          collate_fn=collate_fn_BEV,
-                                                          shuffle=ssl_dataloader_config["shuffle"],
-                                                          num_workers=ssl_dataloader_config["num_workers"])
+                                                         batch_size=ssl_dataloader_config["batch_size"],
+                                                         collate_fn=collate_fn_BEV,
+                                                         shuffle=ssl_dataloader_config["shuffle"],
+                                                         num_workers=ssl_dataloader_config["num_workers"])
 
     return train_dataset_loader, val_dataset_loader, test_dataset_loader, ssl_dataset_loader
