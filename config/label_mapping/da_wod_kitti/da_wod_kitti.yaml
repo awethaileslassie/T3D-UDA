@@ -176,38 +176,35 @@ learning_ignore: # Ignore classes
   20: False    # "traffic-sign"
   21: False    # "traffic-sign"
   22: False    # "traffic-sign"
+
 split: # sequence numbers
-  train: # 40 percent gt
-    - 00
-    - 01
-    - 02
-    - 03
-    - 04
-    - 05
-    - 06
-    - 07
-    - 09
-    - 10
-    - 11
-    - 12
-    - 13
-    - 14
-    - 15
-    - 16
-    - 17
-    - 18
-    - 19
-    - 20
+  train:
+    - '00'
+    - '01'
+    - '02'
+    - '03'
+    - '04'
+    - '05'
+    - '06'
+    - '07'
+    - '09'
+    - '10'
+
   valid:
-    - 8
-  test: # 60 percent psl
-    - 00
-    - 01
-    - 02
-    - 03
-    - 04
-    - 05
-    - 06
-    - 07
-    - 09
-    - 10
+    - '08'
+
+  pseudo:
+    - '11'
+
+  test:
+    - '11'
+    - '12'
+    - '13'
+    - '14'
+    - '15'
+    - '16'
+    - '17'
+    - '18'
+    - '19'
+    - '20'
+    - '21'

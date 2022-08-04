@@ -185,19 +185,19 @@ learning_ignore: # Ignore classes
   19: False    # "traffic-sign"
 split: # sequence numbers
   train:
-#    - '00'
-#    - '01'
-#    - '02'
+    - '00'
+    - '01'
+    - '02'
     - '03'
     - '04'
-#    - '05'
-#    - '06'
-#    - '07'
-#    - '09'
-#    - '10'
+    - '05'
+    - '06'
+    - '07'
+    - '09'
+    - '10'
   valid:
-    - '04'
-#    - '08'
+
+    - '08'
   pseudo:
     - '11'
   test:
