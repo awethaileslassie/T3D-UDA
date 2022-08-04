@@ -7,7 +7,7 @@
 #SBATCH --partition=amdgpufast	  # gpufast
 #SBATCH --gres=gpu:1
 #SBATCH --mem=60G
-#SBATCH --output=/home/gebreawe/Model_logs/Segmentation/ST-UDA/logs/wod_32beam_infer_train_f3_3_all_v3_2_valeo%j.log     # file name for stdout/stderr
+#SBATCH --output=/home/gebreawe/Model_logs/Segmentation/ST-UDA/logs/wod_32beam_infer_train_f0_0_intensity_valeo%j.log     # file name for stdout/stderr
 # module
 #ml spconv/20210618-fosscuda-2020b
 ml spconv/2.1.21-foss-2021a-CUDA-11.3.1
@@ -29,4 +29,4 @@ export NCCL_LL_THRESHOLD=1
 
 #CUDA_VISIBLE_DEVICES=0,1,2 NCCL_P2P_DISABLE=1 python -u -m torch.distributed.launch --nproc_per_node=3 --master_port=$RANDOM test_cylinder_asym_wod.py --config_path 'config/wod/wod_train_infer_f3_3.yaml' --mode 'test' --save 'True' 2>&1 | tee logs_dir/${name}_logs_wod_f3_3_infer_train_v3_2.txt
 
-python test_wod.py --config_path 'config/wod/wod_32beam_f3_3_valeo.yaml' --mode 'test' --save 'True' 2>&1 | tee logs_dir/${name}_logs_wod_32beam_f3_3_infer_train_v3_2_valeo.txt
+python test_wod.py --config_path 'config/wod/wod_f0_0_intensity_beam32.yaml' --mode 'test' --save 'True' 2>&1 | tee logs_dir/${name}_logs_wod_32beam_f0_0_intensity_infer_train_v3_2_valeo.txt
