@@ -2,13 +2,14 @@
 # author: Xinge
 # @file: pc_dataset.py 
 
+import glob
 import os
-import numpy as np
-from torch.utils import data
-import yaml
 import pickle
 from os.path import exists
-import glob
+
+import numpy as np
+import yaml
+from torch.utils import data
 
 REGISTERED_PC_DATASET_CLASSES = {}
 
@@ -299,6 +300,7 @@ def get_combined_data(raw_data, annotated_data, lcw, learning_map, return_ref, o
 
     return data_tuple
 
+
 @register_dataset
 class SemKITTI_sk_multiscan(data.Dataset):
     def __init__(self, data_path, imageset='train', return_ref=False, label_mapping="semantic-kitti-multiscan.yaml",
@@ -444,7 +446,7 @@ class SemKITTI_sk_multiscan(data.Dataset):
             annotated_data = np.expand_dims(np.zeros_like(raw_data[:, 0], dtype=int), axis=1)
         else:
             if self.ssl and exists(newpath.replace('velodyne', f"predictions_f{self.T_past}_{self.T_future}")[:-3]
-                              + 'label'):
+                                   + 'label'):
                 annotated_data = np.fromfile(
                     newpath.replace('velodyne', f"predictions_f{self.T_past}_{self.T_future}")[:-3] + 'label',
                     dtype=np.int32).reshape((-1, 1))
@@ -453,9 +455,8 @@ class SemKITTI_sk_multiscan(data.Dataset):
                                              dtype=np.int32).reshape((-1, 1))
             annotated_data = annotated_data & 0xFFFF  # delete high 16 digits binary
 
-
             if self.ssl and exists(newpath.replace('velodyne', f"probability_f{self.T_past}_{self.T_future}")[
-                              :-3] + 'label'):
+                                   :-3] + 'label'):
                 lcw = np.fromfile(
                     newpath.replace('velodyne', f"probability_f{self.T_past}_{self.T_future}")[
                     :-3] + 'label',
@@ -527,14 +528,16 @@ class SemKITTI_sk_multiscan(data.Dataset):
                 frame_ind = fuse_idx + 1
                 pose = self.poses[dir_idx][number_idx - frame_ind]
                 past_file = self.im_idx[index][:-10] + str(number_idx - frame_ind).zfill(6) + self.im_idx[index][-4:]
-                past_raw_data, past_annotated_data, past_data_len, past_lcw = self.get_semantickitti_data(past_file, -frame_ind)
+                past_raw_data, past_annotated_data, past_data_len, past_lcw = self.get_semantickitti_data(past_file,
+                                                                                                          -frame_ind)
 
                 past_raw_data = transform_pcl_scan(past_raw_data, pose0, pose)
 
                 # past frames
                 if past_data_len != 0:
                     raw_data, annotated_data, lcw = fuse_multiscan(raw_data, annotated_data, lcw,
-                                                                   past_raw_data, past_annotated_data, past_lcw, -1, self.ssl)
+                                                                   past_raw_data, past_annotated_data, past_lcw, -1,
+                                                                   self.ssl)
                     # count number of past frame points
                     past_frame_len += past_data_len
 
@@ -549,14 +552,16 @@ class SemKITTI_sk_multiscan(data.Dataset):
                 frame_ind = fuse_idx + 1
                 future_pose = self.poses[dir_idx][number_idx + frame_ind]
                 future_file = self.im_idx[index][:-10] + str(number_idx + frame_ind).zfill(6) + self.im_idx[index][-4:]
-                future_raw_data, future_annotated_data, future_data_len, future_lcw = self.get_semantickitti_data(future_file, frame_ind)
+                future_raw_data, future_annotated_data, future_data_len, future_lcw = self.get_semantickitti_data(
+                    future_file, frame_ind)
 
                 future_raw_data = transform_pcl_scan(future_raw_data, pose0, future_pose)
 
                 # TODO: check correctness (future frame)
                 if future_data_len != 0:
                     raw_data, annotated_data, lcw = fuse_multiscan(raw_data, annotated_data, lcw,
-                                                                   future_raw_data, future_annotated_data, future_lcw, 1, self.ssl)
+                                                                   future_raw_data, future_annotated_data, future_lcw,
+                                                                   1, self.ssl)
                     # count number of future frame points
                     future_frame_len += future_data_len
 
@@ -721,7 +726,7 @@ class WOD_multiscan(data.Dataset):
         else:
             # x = self.im_idx[index].replace('lidar', f"predictions_f{self.T_past}_{self.T_future}")[:-3] + 'label'
             if self.ssl and exists(newpath.replace('lidar', f"predictions_f{self.T_past}_{self.T_future}")[
-                              :-3] + 'npy'):
+                                   :-3] + 'npy'):
                 annotated_data = np.load(
                     newpath.replace('lidar', f"predictions_f{self.T_past}_{self.T_future}")[
                     :-3] + 'npy').reshape((-1, 1))
@@ -734,9 +739,8 @@ class WOD_multiscan(data.Dataset):
 
             annotated_data = annotated_data & 0xFFFF  # delete high 16 digits binary
 
-
             if self.ssl and exists(newpath.replace('lidar', f"probability_f{self.T_past}_{self.T_future}")[
-                              :-3] + 'npy'):
+                                   :-3] + 'npy'):
                 lcw = np.load(newpath.replace('lidar', f"probability_f{self.T_past}_{self.T_future}")[
                               :-3] + 'npy').reshape((-1, 1))
                 # TODO: check casting
@@ -749,57 +753,6 @@ class WOD_multiscan(data.Dataset):
         return raw_data, annotated_data, len(raw_data), lcw
 
     def __getitem__(self, index):
-        # raw_data = np.load(self.im_idx[index])[:, :4].reshape((-1, 4))
-        # if self.use_time:
-        #     raw_data[:, 3] = np.zeros_like(raw_data[:, 3])
-        # # TODO: check if the colors are encoded correctly instead of the lidar intensity
-        # if rgb:
-        #     # load rgb colors for each points
-        #     raw_rgb = np.load(self.im_idx[index].replace('lidar', 'colors')[
-        #                       :-3] + 'npy')
-        #     # convert rgb into gray scale [0, 255]
-        #     raw_gray = 0.2989 * raw_rgb[:, 0] + 0.5870 * raw_rgb[:, 1] + 0.1140 * raw_rgb[:, 2]
-        #     # mask (0) ignored point colors  (originally not provided on wod rear-cameras) -> rgb:[1,1,1] or gray:[
-        #     # 0.99990])
-        #     gray_mask = raw_gray > 1  # < 1 #0.9998999999999999
-        #     # assign 0 to the place we want to mask
-        #     raw_gray[gray_mask] = -1
-        #     # replace intensity with gray scale camera image/frame color
-        #     raw_data[:, 3] = raw_gray
-        #     # raw_data[:,4] = gray_mask * 1
-        #
-        # origin_len = len(raw_data)
-        # if self.imageset == 'test':
-        #     annotated_data = np.expand_dims(np.zeros_like(raw_data[:, 0]), axis=1).reshape((-1, 1))
-        # else:
-        #     # x = self.im_idx[index].replace('lidar', f"predictions_f{self.T_past}_{self.T_future}")[:-3] + 'label'
-        #     if ssl and exists(self.im_idx[index].replace('lidar', f"predictions_f{self.T_past}_{self.T_future}")[
-        #                       :-3] + 'npy'):
-        #         annotated_data = np.load(
-        #             self.im_idx[index].replace('lidar', f"predictions_f{self.T_past}_{self.T_future}")[
-        #             :-3] + 'npy').reshape((-1, 1))
-        #     else:
-        #         # print(self.im_idx[index].replace('lidar', 'labels_v3_2')[:-3] + 'npy')
-        #         annotated_data = np.load(self.im_idx[index].replace('lidar', 'labels_v3_2')[:-3] + 'npy',
-        #                                  allow_pickle=True)[:, 1].reshape((-1, 1))
-        #
-        #     annotated_data = annotated_data & 0xFFFF  # delete high 16 digits binary
-        #     # annotated_data = np.vectorize(self.learning_map.__getitem__)(annotated_data)
-        #     if ssl and exists(self.im_idx[index].replace('lidar', f"probability_f{self.T_past}_{self.T_future}")[
-        #                       :-3] + 'npy'):
-        #         lcw = np.load(self.im_idx[index].replace('lidar', f"probability_f{self.T_past}_{self.T_future}")[
-        #                       :-3] + 'npy').reshape((-1, 1))
-        #         # TODO: check casting
-        #         lcw = (lcw * 100).astype(np.int32)
-        #     elif ssl:  # in case of GT label give weight = 1.0 per label
-        #         lcw = np.expand_dims(np.ones_like(raw_data[:, 0]), axis=1)
-        #         # TODO: check casting
-        #         lcw = (lcw * 100).astype(np.int32)
-        #
-        # number_idx = int(self.im_idx[index][-10:-4])
-        # # dir_idx = int(self.im_idx[index][-22:-20])
-        # dir_idx = self.im_idx[index].split("/")[-3]
-
         # reference scan
         reference_file = self.im_idx[index]
         raw_data, annotated_data, data_len, lcw = self.get_wod_data(reference_file, 0)
@@ -829,7 +782,8 @@ class WOD_multiscan(data.Dataset):
                 # past frames
                 if past_data_len != 0:
                     raw_data, annotated_data, lcw = fuse_multiscan(raw_data, annotated_data, lcw,
-                                                                   past_raw_data, past_annotated_data, past_lcw, -1, self.ssl)
+                                                                   past_raw_data, past_annotated_data, past_lcw, -1,
+                                                                   self.ssl)
                     # count number of past frame points
                     past_frame_len += past_data_len
 
@@ -844,7 +798,8 @@ class WOD_multiscan(data.Dataset):
                 frame_ind = fuse_idx + 1
                 future_pose = self.poses[dir_idx][number_idx + frame_ind]
                 future_file = self.im_idx[index][:-10] + str(number_idx + frame_ind).zfill(6) + self.im_idx[index][-4:]
-                future_raw_data, future_annotated_data, future_data_len, future_lcw = self.get_wod_data(future_file, frame_ind)
+                future_raw_data, future_annotated_data, future_data_len, future_lcw = self.get_wod_data(future_file,
+                                                                                                        frame_ind)
 
                 # transform the future frame into reference frame coordinate system
                 future_raw_data = transform_pcl_scan(future_raw_data, pose0, future_pose)
@@ -852,7 +807,8 @@ class WOD_multiscan(data.Dataset):
                 # TODO: check correctness (future frame)
                 if future_data_len != 0:
                     raw_data, annotated_data, lcw = fuse_multiscan(raw_data, annotated_data, lcw,
-                                                                   future_raw_data, future_annotated_data, future_lcw, 1, self.ssl)
+                                                                   future_raw_data, future_annotated_data, future_lcw,
+                                                                   1, self.ssl)
                     # count number of future frame points
                     future_frame_len += future_data_len
 
@@ -863,27 +819,24 @@ class WOD_multiscan(data.Dataset):
         return data_tuple
 
 
-# load Semantic KITTI class info
-def get_SemKITTI_label_name(label_mapping):
+# load label class info
+def get_label_name(label_mapping):
     with open(label_mapping, 'r') as stream:
-        semkittiyaml = yaml.safe_load(stream)
-    SemKITTI_label_name = dict()
-    for i in sorted(list(semkittiyaml['learning_map'].keys()))[::-1]:
-        SemKITTI_label_name[semkittiyaml['learning_map'][i]] = semkittiyaml['labels'][i]
+        config_yaml = yaml.safe_load(stream)
+    class_label_name = dict()
+    for i in sorted(list(config_yaml['learning_map'].keys()))[::-1]:
+        class_label_name[config_yaml['learning_map'][i]] = config_yaml['labels'][i]
 
-    return SemKITTI_label_name
+    return class_label_name
 
 
-def get_SemKITTI_label_inv_name(label_inv_mapping):
+def get_label_inv_name(label_inv_mapping):
     with open(label_inv_mapping, 'r') as stream:
-        semkittiyaml = yaml.safe_load(stream)
-    SemKITTI_label_inv_name = dict()
+        config_yaml = yaml.safe_load(stream)
+    # label_inv_name = dict()
+    label_inv_name = config_yaml['learning_map_inv']
 
-    # for i in sorted(list(semkittiyaml['learning_map_inv'].keys()))[::-1]:
-    #    SemKITTI_label_inv_name[semkittiyaml['learning_map_inv'][i]]
-    SemKITTI_label_inv_name = semkittiyaml['learning_map_inv']
-
-    return SemKITTI_label_inv_name
+    return label_inv_name
 
 
 def get_nuScenes_label_name(label_mapping):
