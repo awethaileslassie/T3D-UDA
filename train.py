@@ -2,26 +2,23 @@
 # author: Awet
 # @file: train_cylinder_asym_wod.py
 
-import os
-import time
 import argparse
+import os
 import sys
-import numpy as np
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from tqdm import tqdm
-
-from utils.metric_util import per_class_iu, fast_hist_crop
-from dataloader.pc_dataset import get_SemKITTI_label_name, update_config
-from builder import data_builder, model_builder, loss_builder
-from config.config import load_config_data
-
-from utils.load_save_util import load_checkpoint
-
+import time
 import warnings
 
+import numpy as np
+import torch
+import torch.optim as optim
 from torch.nn.parallel import DistributedDataParallel
+from tqdm import tqdm
+
+from builder import data_builder, model_builder, loss_builder
+from config.config import load_config_data
+from dataloader.pc_dataset import get_label_name, update_config
+from utils.load_save_util import load_checkpoint
+from utils.metric_util import per_class_iu, fast_hist_crop
 from utils.per_class_weight import semantic_kitti_class_weights
 
 warnings.filterwarnings("ignore")
@@ -90,7 +87,7 @@ def main(args):
     model_load_path = train_hypers['model_load_path']
     model_save_path = train_hypers['model_save_path']
 
-    SemKITTI_label_name = get_SemKITTI_label_name(dataset_config["label_mapping"])
+    SemKITTI_label_name = get_label_name(dataset_config["label_mapping"])
     # NB: no ignored class
     unique_label = np.asarray(sorted(list(SemKITTI_label_name.keys())))[1:] - 1
     unique_label_str = [SemKITTI_label_name[x] for x in unique_label + 1]
@@ -147,10 +144,6 @@ def main(args):
     scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=0.01, steps_per_epoch=len(train_dataset_loader),
                                                     epochs=train_hypers["max_num_epochs"])
 
-    class_count = np.zeros(20)
-    # training
-    # epoch = 0
-    # best_val_miou = 0
     my_model.train()
     # global_iter = 0
     check_iter = train_hypers['eval_every_n_steps']
@@ -269,6 +262,8 @@ def main(args):
                                       ignore=ignore_label) + loss_func(
                     outputs, point_label_tensor)
 
+            # TODO: check --> to mitigate only one element tensors can be converted to Python scalars
+            # loss = loss.mean()
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
@@ -314,6 +309,7 @@ if __name__ == '__main__':
     # Training settings
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('-y', '--config_path', default='config/wod/wod_f0_0_intensity_beam32.yaml')
+    # parser.add_argument('-y', '--config_path', default='config/semantickitti/semantickitti_f3_3_s10.yaml')
     parser.add_argument('-g', '--mgpus', action='store_true', default=False)
     parser.add_argument("--local_rank", default=0, type=int)
     args = parser.parse_args()
