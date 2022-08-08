@@ -31,7 +31,6 @@ dataset_params = Map(
     }
 )
 
-
 train_data_loader = Map(
     {
         "data_path": Str(),
@@ -92,7 +91,7 @@ train_params = Map(
         "rgb": Bool(),
         "uda": Bool(),
         "time": Bool(),
-     }
+    }
 )
 
 schema_v4 = Map(
@@ -107,7 +106,6 @@ schema_v4 = Map(
         "train_params": train_params,
     }
 )
-
 
 SCHEMA_FORMAT_VERSION_TO_SCHEMA = {4: schema_v4}
 

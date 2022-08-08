@@ -53,7 +53,7 @@ val_data_loader:
   batch_size: 4
   shuffle: False
   num_workers: 0
-  
+
 test_data_loader:
   data_path: "/mnt/beegfs/gpu/argoverse-tracking-all-training/semantic-kitti/dataset/sequences"
   imageset: "test"
@@ -64,7 +64,7 @@ test_data_loader:
 
 ssl_data_loader:
   data_path: "/mnt/beegfs/gpu/argoverse-tracking-all-training/semantic-kitti/dataset/sequences"
-  imageset: "ssl"
+  imageset: "pseudo"
   return_ref: True
   batch_size: 4
   shuffle: False
@@ -73,15 +73,17 @@ ssl_data_loader:
 ###################
 ## test params
 train_params:
-  model_load_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST_Cylinder_3D/model_save_dir/wod_save_f3_3_labelled_b3_v3_2_time.pt"
-  model_save_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST_Cylinder_3D/model_save_dir/wod_save_f3_3_labelled_b3_v3_2_time.pt"
-  checkpoint_every_n_steps: 1000 #4599
+  model_load_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST-UDA/model_save_dir/wod_save_f3_3_intensity.pt"
+  model_save_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST-UDA/model_save_dir/wod_save_f3_3_intensity.pt"
+  checkpoint_every_n_steps: 1000
   max_num_epochs: 40
-  eval_every_n_steps: 1000 #4599
+  eval_every_n_steps: 1000
   learning_rate: 0.001
   past: 3
   future: 3
-  T_past: 33333
-  T_future: 33333
+  T_past: '3_intensity'
+  T_future: '3_intensity'
   ssl: False
   rgb: False
+  uda: False
+  time: False

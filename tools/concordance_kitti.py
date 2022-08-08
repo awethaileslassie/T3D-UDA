@@ -3,30 +3,24 @@
 # @file: train_cylinder_asym.py
 
 
-import os
-import time
 import argparse
-import sys
-
-import numpy as np
 import glob
 import os
-import shutil
-import random
-import math
+
+import numpy as np
 
 
 def main(args):
-    #sequence = ["04"]
-    #des_seq = ["34"]
+    # sequence = ["04"]
+    # des_seq = ["34"]
     teacher_1 = args.teacher1
     teacher_2 = args.teacher2
     teacher_3 = args.teacher3
-    lamda  = args.lamda
+    lamda = args.lamda
     concordance = args.concordance
 
-    sequence = ["00", "01", "02","03", "04", "05", "06", "07", "09", "10"]
-    #des_seq = ["11", "12", "13","14", "15", "16", "17", "18", "19", "20"]
+    sequence = ["00", "01", "02", "03", "04", "05", "06", "07", "09", "10"]
+    # des_seq = ["11", "12", "13","14", "15", "16", "17", "18", "19", "20"]
 
     source = '/mnt/beegfs/gpu/argoverse-tracking-all-training/semantic-kitti/train_pseudo_20/sequences'
     destination = '/mnt/beegfs/gpu/argoverse-tracking-all-training/semantic-kitti/train_pseudo_20/sequences'
@@ -46,19 +40,23 @@ def main(args):
         for frame in range(frame_len):
             frame_name = str(frame).zfill(6)
 
-            pred = np.array([np.fromfile(preds_t1[frame], dtype=np.int32).reshape((-1, 1)), np.fromfile(preds_t2[frame], dtype=np.int32).reshape((-1, 1))])
-            prob = np.array([np.fromfile(probs_t1[frame], dtype=np.float32).reshape((-1, 1)), np.fromfile(probs_t2[frame], dtype=np.float32).reshape((-1, 1))])
+            pred = np.array([np.fromfile(preds_t1[frame], dtype=np.int32).reshape((-1, 1)),
+                             np.fromfile(preds_t2[frame], dtype=np.int32).reshape((-1, 1))])
+            prob = np.array([np.fromfile(probs_t1[frame], dtype=np.float32).reshape((-1, 1)),
+                             np.fromfile(probs_t2[frame], dtype=np.float32).reshape((-1, 1))])
             if teacher_3 is not None:
-                pred = np.array([np.fromfile(preds_t1[frame], dtype=np.int32).reshape((-1, 1)), np.fromfile(preds_t2[frame], dtype=np.int32).reshape((-1, 1)), np.fromfile(preds_t3[frame], dtype=np.int32).reshape((-1, 1))])
-                prob = np.array([np.fromfile(probs_t1[frame], dtype=np.float32).reshape((-1, 1)), np.fromfile(probs_t2[frame], dtype=np.float32).reshape((-1, 1)), np.fromfile(probs_t3[frame], dtype=np.float32).reshape((-1, 1))])
-
+                pred = np.array([np.fromfile(preds_t1[frame], dtype=np.int32).reshape((-1, 1)),
+                                 np.fromfile(preds_t2[frame], dtype=np.int32).reshape((-1, 1)),
+                                 np.fromfile(preds_t3[frame], dtype=np.int32).reshape((-1, 1))])
+                prob = np.array([np.fromfile(probs_t1[frame], dtype=np.float32).reshape((-1, 1)),
+                                 np.fromfile(probs_t2[frame], dtype=np.float32).reshape((-1, 1)),
+                                 np.fromfile(probs_t3[frame], dtype=np.float32).reshape((-1, 1))])
 
             max_pob = prob.max(axis=0)
             max_pob_id = prob.argmax(axis=0)
             best_pred = np.zeros_like(pred[0])
             for i in range(len(max_pob)):
                 best_pred[i] = pred[int(max_pob_id[i]), i]
-
 
             weight = np.zeros_like(best_pred)
 
@@ -68,7 +66,7 @@ def main(args):
                 weight += concored.astype(int)
 
             best_prob = max_pob
-            new_prob = best_prob + ((weight-1) * lamda)
+            new_prob = best_prob + ((weight - 1) * lamda)
             new_prob = np.minimum(np.ones_like(best_prob), new_prob)
             new_prob = new_prob.astype(np.float32)
 
@@ -77,7 +75,7 @@ def main(args):
                 os.makedirs(os.path.join(destination, sq, f"probability_{concordance}"))
 
             best_pred.tofile(os.path.join(destination, sq, f"predictions_{concordance}", frame_name + '.label'))
-            new_prob.tofile(os.path.join(destination, sq,  f"probability_{concordance}", frame_name + '.label'))
+            new_prob.tofile(os.path.join(destination, sq, f"probability_{concordance}", frame_name + '.label'))
 
 
 if __name__ == '__main__':

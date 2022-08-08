@@ -19,9 +19,9 @@ def load_checkpoint(model_load_path, model, map_location=None):
     for k in pre_weight.keys():
         value = pre_weight[k]
         if k[:7] == 'module.':
-            k=k[7:]
+            k = k[7:]
         if k in my_model_dict and my_model_dict[k].shape == value.shape:
-            #print("loading ", k)
+            # print("loading ", k)
             match_size += 1
             part_load[k] = value
         else:

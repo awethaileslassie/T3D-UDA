@@ -1,13 +1,13 @@
 #!/bin/bash
 
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=16                  # 1 node
-#SBATCH --ntasks-per-node=1       # 36 tasks per node
+#SBATCH --cpus-per-task=1               # 1 node
+#SBATCH --ntasks-per-node=3        # 36 tasks per node
 #SBATCH --time=4:00:00               # time limits: 500 hour
 #SBATCH --partition=amdgpufast	  # gpufast
-#SBATCH --gres=gpu:2
+#SBATCH --gres=gpu:3
 #SBATCH --mem=40G
-#SBATCH --output=run_val_f3_3_wod_kitti_%j.log     # file name for stdout/stderr
+#SBATCH --output=/home/gebreawe/Model_logs/Segmentation/ST-UDA/logs/run_val_uda_wod_kitti_wod_f0_0_time_%j.log     # file name for stdout/stderr
 # module
 #ml spconv/20210618-fosscuda-2020b
 ml spconv/2.1.21-foss-2021a-CUDA-11.3.1
@@ -26,6 +26,5 @@ name=cylinder_asym_networks
 
 export NCCL_LL_THRESHOLD=0
 
-python test_cylinder_asym.py --config_path 'config/da_wod_kitti/uda_wod_kitti_f0_0_intensity.yaml' --mode 'val' --save 'True' 2>&1 | tee logs_dir/${name}_logs_val_T3_3_wod_kitti.txt
-
+python test.py --config_path 'config/da_wod_kitti/uda_wod_kitti_f0_0_time.yaml' --mode 'val' --challenge 'False' --save 'True' 2>&1 | tee logs_dir/${name}_logs_val_uda_wod_kitti_f0_0_time.txt
 

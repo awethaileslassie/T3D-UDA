@@ -7,7 +7,7 @@
 #SBATCH --partition=amdgpufast	  # gpufast
 #SBATCH --gres=gpu:3
 #SBATCH --mem=40G
-#SBATCH --output=/home/gebreawe/Model_logs/Segmentation/ST_Cylinder_3D/logs/run_val_wod_da_kitti_wod_f2_0_T11_33_ssl_s40_p60_%j.log     # file name for stdout/stderr
+#SBATCH --output=/home/gebreawe/Model_logs/Segmentation/ST-UDA/logs/run_val_uda_wod_kitti_wod_f0_0_time_%j.log     # file name for stdout/stderr
 # module
 #ml spconv/20210618-fosscuda-2020b
 ml spconv/2.1.21-foss-2021a-CUDA-11.3.1
@@ -26,5 +26,5 @@ name=cylinder_asym_networks
 
 export NCCL_LL_THRESHOLD=0
 
-CUDA_VISIBLE_DEVICES=0,1,2 NCCL_P2P_DISABLE=1 python -u -m torch.distributed.launch --nproc_per_node=3 --master_port=$RANDOM test_cylinder_asym_wod.py --config_path 'config/da_kitti_wod/da_kitti_wod_f2_0_T11_33_ssl_s40_p60.yaml' --mode 'val' --challenge 'True' --save 'True' 2>&1 | tee logs_dir/${name}_logs_val_da_kitti_wod_f2_0_T11_33_ssl_s40_p60.txt
+python test.py --config_path 'config/da_wod_kitti/uda_wod_kitti_f0_0_time_uda.yaml' --mode 'val' --challenge 'False' --save 'True' 2>&1 | tee logs_dir/${name}_logs_val_uda_wod_kitti_f0_0_time.txt
 

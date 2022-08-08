@@ -15,7 +15,7 @@ from torch.nn.parallel import DistributedDataParallel
 
 from builder import model_builder
 from config.config import load_config_data
-from dataloader.pc_dataset import get_SemKITTI_label_name, update_config
+from dataloader.pc_dataset import get_label_name, update_config
 from utils.load_save_util import load_checkpoint
 
 warnings.filterwarnings("ignore")
@@ -140,7 +140,7 @@ def main(args):
     model_load_path = train_hypers['model_load_path']
     model_save_path = train_hypers['model_save_path']
 
-    SemKITTI_label_name = get_SemKITTI_label_name(dataset_config["label_mapping"])
+    SemKITTI_label_name = get_label_name(dataset_config["label_mapping"])
     unique_label = np.asarray(sorted(list(SemKITTI_label_name.keys())))[1:] - 1
     unique_label_str = [SemKITTI_label_name[x] for x in unique_label + 1]
 
@@ -180,12 +180,12 @@ def main(args):
          1.41894140e+07, 1.83603141e+08, 6.71228500e+06, 1.44198800e+06])
 
     f1_0 = np.array([95.22, 20.10, 54.25, 43.92, 32.22, 57.62, 73.94, 0.01,
-                      93.27, 37.09,
-                      78.23, 0.92,
-                      87.46, 42.91,
-                      85.14, 63.11,
-                      68.35, 63.53,
-                      49.77, 55.11, ])
+                     93.27, 37.09,
+                     78.23, 0.92,
+                     87.46, 42.91,
+                     85.14, 63.11,
+                     68.35, 63.53,
+                     49.77, 55.11, ])
 
     f1_T11_33 = np.array([94.91, 33.67,
                           53.10, 48.65,
@@ -205,12 +205,12 @@ def main(args):
                           62.33,
                           50.11,
                           60.55])
-                          
-    f2_0 = np.array([93.17,30.99,47.51,24.47,31.54,62.33,78.9,0.00,93.01,
-    39.34,78.21,1.1,88.01,47.2,86.78,59.08,72.66,63.93,47.72,55.051])
-    
-    f2_T11_33 = np.array([94.6,45.21,59.01,45.42,45.29,74.31,83.46,0.00,
-    92.34,39.53,77.43,0.29,90.85,57.99,87.93,66.47,72.63,64.08,49.76,60.348])
+
+    f2_0 = np.array([93.17, 30.99, 47.51, 24.47, 31.54, 62.33, 78.9, 0.00, 93.01,
+                     39.34, 78.21, 1.1, 88.01, 47.2, 86.78, 59.08, 72.66, 63.93, 47.72, 55.051])
+
+    f2_T11_33 = np.array([94.6, 45.21, 59.01, 45.42, 45.29, 74.31, 83.46, 0.00,
+                          92.34, 39.53, 77.43, 0.29, 90.85, 57.99, 87.93, 66.47, 72.63, 64.08, 49.76, 60.348])
 
     imp1 = f1_T11_33 - f1_0
     imp2 = f2_T11_33 - f2_0

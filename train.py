@@ -1,29 +1,31 @@
 # -*- coding:utf-8 -*-
-# author: Awet H. Gebrehiwot
-# --------------------------|
+# author: Awet
+# @file: train_cylinder_asym_wod.py
 
-import os
-import time
 import argparse
+import os
 import sys
-import numpy as np
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from tqdm import tqdm
-
-from utils.metric_util import per_class_iu, fast_hist_crop
-from dataloader.pc_dataset import get_SemKITTI_label_name, update_config
-from builder import data_builder, model_builder, loss_builder
-from config.config import load_config_data
-
-from utils.load_save_util import load_checkpoint
-
+import time
 import warnings
 
+import numpy as np
+import torch
+import torch.optim as optim
 from torch.nn.parallel import DistributedDataParallel
+from tqdm import tqdm
+
+from builder import data_builder, model_builder, loss_builder
+from config.config import load_config_data
+from dataloader.pc_dataset import get_label_name, update_config
+from utils.load_save_util import load_checkpoint
+from utils.metric_util import per_class_iu, fast_hist_crop
+from utils.per_class_weight import semantic_kitti_class_weights
 
 warnings.filterwarnings("ignore")
+
+# clear/empty cached memory used by caching allocator
+torch.cuda.empty_cache()
+torch.cuda.memory_summary(device=None, abbreviated=False)
 
 # training
 epoch = 0
@@ -32,6 +34,15 @@ global_iter = 0
 
 
 def main(args):
+    # pytorch_device = torch.device("cuda:2") # torch.device('cuda:2')
+    # os.environ['TORCH_DISTRIBUTED_DEBUG'] = 'true'
+    # os.environ['MASTER_ADDR'] = 'localhost'
+    # os.environ['MASTER_PORT'] = '9994'
+    # os.environ['RANK'] = "0"
+    # If your script expects `--local_rank` argument to be set, please
+    # change it to read from `os.environ['LOCAL_RANK']` instead.
+    # args.local_rank = os.environ['LOCAL_RANK']
+
     os.environ['OMP_NUM_THREADS'] = "1"
 
     distributed = False
@@ -76,7 +87,8 @@ def main(args):
     model_load_path = train_hypers['model_load_path']
     model_save_path = train_hypers['model_save_path']
 
-    SemKITTI_label_name = get_SemKITTI_label_name(dataset_config["label_mapping"])
+    SemKITTI_label_name = get_label_name(dataset_config["label_mapping"])
+    # NB: no ignored class
     unique_label = np.asarray(sorted(list(SemKITTI_label_name.keys())))[1:] - 1
     unique_label_str = [SemKITTI_label_name[x] for x in unique_label + 1]
 
@@ -89,12 +101,14 @@ def main(args):
     #     #my_model.cuda()
     # #my_model.cuda()
 
+    # my_model = my_model().to(pytorch_device)
+    # if args.local_rank >= 1:
     if distributed:
         my_model = DistributedDataParallel(
             my_model,
             device_ids=[pytorch_device],
             output_device=args.local_rank,
-            find_unused_parameters=True
+            find_unused_parameters=False  # True
         )
 
     # for weighted class loss
@@ -103,24 +117,11 @@ def main(args):
     # for focal loss
     focal_loss = False  # True
 
-    # 20 class number of samples from training sample
-    per_class_count = np.array([3.36552520e+07, 4.24645650e+07, 9.30680000e+04, 5.12361000e+05,
-                                2.66789400e+06, 2.96548400e+06, 3.16252000e+05, 7.69900000e+04,
-                                2.69060000e+04, 1.90390273e+08, 1.44885870e+07, 1.30096105e+08,
-                                5.36779100e+06, 1.15425597e+08, 4.72169130e+07, 2.45959814e+08,
-                                6.53122800e+06, 1.00672267e+08, 2.77797500e+06, 7.42047000e+05])
-
-    class_weights = np.array([1.40014903e+00, 1.10968683e+00, 5.06321920e+02, 9.19710291e+01,
-                              1.76627589e+01, 1.58902791e+01, 1.49002594e+02, 6.12058299e+02,
-                              1.75137027e+03, 2.47504075e-01, 3.25237847e+00, 3.62211985e-01,
-                              8.77872638e+00, 4.08248861e-01, 9.97997655e-01, 1.91585640e-01,
-                              7.21493239e+00, 4.68076958e-01, 1.69628483e+01, 6.35032127e+01], dtype=np.float32)
-
     per_class_weight = None
     if focal_loss or weighted_class:
+        # 20 class number of samples from training sample
+        class_weights = semantic_kitti_class_weights
         per_class_weight = torch.from_numpy(class_weights).to(pytorch_device)
-
-    optimizer = optim.Adam(my_model.parameters(), lr=train_hypers["learning_rate"])
 
     if ssl:
         loss_func, lovasz_softmax = loss_builder.build(wce=True, lovasz=True,
@@ -132,13 +133,17 @@ def main(args):
                                                        weights=per_class_weight, fl=focal_loss)
 
     train_dataset_loader, val_dataset_loader, _, _ = data_builder.build(dataset_config,
-                                                                     train_dataloader_config,
-                                                                     val_dataloader_config,
-                                                                     ssl_dataloader_config=ssl_dataloader_config,
-                                                                     grid_size=grid_size,
-                                                                     train_hypers=train_hypers)
+                                                                        train_dataloader_config,
+                                                                        val_dataloader_config,
+                                                                        ssl_dataloader_config=ssl_dataloader_config,
+                                                                        grid_size=grid_size,
+                                                                        train_hypers=train_hypers)
 
-    class_count = np.zeros(20)
+    optimizer = optim.Adam(my_model.parameters(), lr=train_hypers["learning_rate"])
+
+    scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=0.01, steps_per_epoch=len(train_dataset_loader),
+                                                    epochs=train_hypers["max_num_epochs"])
+
     my_model.train()
     # global_iter = 0
     check_iter = train_hypers['eval_every_n_steps']
@@ -151,12 +156,13 @@ def main(args):
         print(f"epoch: {epoch}")
         loss_list = []
         pbar = tqdm(total=len(train_dataset_loader))
-        time.sleep(5)
+        time.sleep(15)
 
         # lr_scheduler.step(epoch)
 
-        def valideting(hist_list, val_loss_list, val_vox_label, val_grid, val_pt_labs, val_pt_fea, ref_st_idx=None,
+        def validating(hist_list, val_loss_list, val_vox_label, val_grid, val_pt_labs, val_pt_fea, ref_st_idx=None,
                        ref_end_idx=None, lcw=None):
+
             val_pt_fea_ten = [torch.from_numpy(i).type(torch.FloatTensor).to(pytorch_device) for i in val_pt_fea]
             val_grid_ten = [torch.from_numpy(i).to(pytorch_device) for i in val_grid]
             val_label_tensor = val_vox_label.type(torch.LongTensor).to(pytorch_device)
@@ -173,11 +179,11 @@ def main(args):
             if ssl:
                 lcw_tensor = torch.FloatTensor(lcw).to(pytorch_device)
                 loss = lovasz_softmax(torch.nn.functional.softmax(predict_labels).detach(), val_label_tensor,
-                                      ignore=ignore_label, lcw=lcw_tensor) + loss_func(predict_labels.detach(),
-                                                                                       val_label_tensor, lcw=lcw_tensor)
+                                      lcw=lcw_tensor) + loss_func(predict_labels.detach(),
+                                                                  val_label_tensor, lcw=lcw_tensor)
             else:
-                loss = lovasz_softmax(torch.nn.functional.softmax(predict_labels).detach(), val_label_tensor,
-                                      ignore=ignore_label) + loss_func(predict_labels.detach(), val_label_tensor)
+                loss = lovasz_softmax(torch.nn.functional.softmax(predict_labels).detach(),
+                                      val_label_tensor) + loss_func(predict_labels.detach(), val_label_tensor)
 
             predict_labels = torch.argmax(predict_labels, dim=1)
             predict_labels = predict_labels.cpu().detach().numpy()
@@ -196,12 +202,15 @@ def main(args):
             hist_list = []
             val_loss_list = []
             with torch.no_grad():
+                my_model.eval()
+
                 # Validation with multi-frames and ssl:
                 # if past_frame > 0 and train_hypers['ssl']:
-                for i_iter_val, (_, vox_label, grid, pt_labs, pt_fea, ref_st_idx, ref_end_idx, val_lcw) \
-                        in enumerate(val_dataset_loader):
+                for i_iter_val, (
+                        _, vox_label, grid, pt_labs, pt_fea, ref_st_idx, ref_end_idx, val_lcw) in enumerate(
+                    val_dataset_loader):
                     # call the validation and inference with
-                    hist_list, val_loss_list = valideting(hist_list, val_loss_list, vox_label, grid, pt_labs,
+                    hist_list, val_loss_list = validating(hist_list, val_loss_list, vox_label, grid, pt_labs,
                                                           pt_fea, ref_st_idx=ref_st_idx,
                                                           ref_end_idx=ref_end_idx,
                                                           lcw=val_lcw)
@@ -218,19 +227,19 @@ def main(args):
                 # save model if performance is improved
                 if best_val_miou < val_miou:
                     best_val_miou = val_miou
-                    if not os.path.exists(model_save_path.split('/')[-2]):
-                        os.mkdir(os.path.join(model_save_path.split('/')[-2]))
                     torch.save(my_model.state_dict(), model_save_path)
 
-                print(f"Current val miou is {np.round(val_miou, 2)} while the best val miou is "
-                      f"{np.round(best_val_miou, 2)}")
-                print(f"Current val loss is {np.round(np.mean(val_loss_list), 2)}")
+                print('Current val miou is %.3f while the best val miou is %.3f' %
+                      (val_miou, best_val_miou))
+                print('Current val loss is %.3f' %
+                      (np.mean(val_loss_list)))
 
         def training(i_iter_train, train_vox_label, train_grid, pt_labels, train_pt_fea, ref_st_idx=None,
                      ref_end_idx=None, lcw=None):
             global global_iter, best_val_miou, epoch
 
             train_pt_fea_ten = [torch.from_numpy(i).type(torch.FloatTensor).to(pytorch_device) for i in train_pt_fea]
+            # train_grid_ten = [torch.from_numpy(i[:,:2]).to(pytorch_device) for i in train_grid]
             train_vox_ten = [torch.from_numpy(i).to(pytorch_device) for i in train_grid]
             point_label_tensor = train_vox_label.type(torch.LongTensor).to(pytorch_device)
 
@@ -254,10 +263,13 @@ def main(args):
                     outputs, point_label_tensor)
 
             # TODO: check --> to mitigate only one element tensors can be converted to Python scalars
-            loss = loss.mean()
+            # loss = loss.mean()
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
+
+            # Uncomment to use the learning rate scheduler
+            # scheduler.step()
 
             loss_list.append(loss.item())
 
@@ -282,7 +294,6 @@ def main(args):
 
         my_model.train()
         # training with multi-frames and ssl:
-        # if past_frame > 0 and train_hypers['ssl']:
         for i_iter_train, (_, vox_label, grid, pt_labs, pt_fea, ref_st_idx, ref_end_idx, lcw) in enumerate(
                 train_dataset_loader):
             # call the validation and inference with
@@ -296,8 +307,8 @@ def main(args):
 if __name__ == '__main__':
     # Training settings
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-y', '--config_path',
-                        default='config/semantickitti/semantickitti_f3_3_s10.yaml')
+    parser.add_argument('-y', '--config_path', default='config/wod/wod_f0_0_intensity_beam32.yaml')
+    # parser.add_argument('-y', '--config_path', default='config/semantickitti/semantickitti_f3_3_s10.yaml')
     parser.add_argument('-g', '--mgpus', action='store_true', default=False)
     parser.add_argument("--local_rank", default=0, type=int)
     args = parser.parse_args()

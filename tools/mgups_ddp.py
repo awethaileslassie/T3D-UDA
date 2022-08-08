@@ -3,16 +3,18 @@
 from argparse import ArgumentParser
 
 import torch
-import torch.nn as nn
 import torch.distributed as dist
+import torch.nn as nn
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.distributed import DistributedSampler
-#from transformers import BertForMaskedLM
+
+# from transformers import BertForMaskedLM
 
 SEED = 42
 BATCH_SIZE = 8
 NUM_EPOCHS = 3
+
 
 class ConvNet(nn.Module):
     def __init__(self, num_classes=10):
@@ -27,7 +29,7 @@ class ConvNet(nn.Module):
             nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2))
-        self.fc = nn.Linear(7*7*32, num_classes)
+        self.fc = nn.Linear(7 * 7 * 32, num_classes)
 
     def forward(self, x):
         out = self.layer1(x)
@@ -35,6 +37,7 @@ class ConvNet(nn.Module):
         out = out.reshape(out.size(0), -1)
         out = self.fc(out)
         return out
+
 
 class YourDataset(Dataset):
 

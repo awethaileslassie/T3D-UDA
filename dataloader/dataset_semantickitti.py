@@ -4,15 +4,10 @@
 """
 SemKITTI dataloader
 """
-import os
+import numba as nb
 import numpy as np
 import torch
-import random
-import time
-import numba as nb
-import yaml
 from torch.utils import data
-import pickle
 
 REGISTERED_DATASET_CLASSES = {}
 
@@ -35,7 +30,8 @@ def get_model_class(name):
 @register_dataset
 class voxel_dataset(data.Dataset):
     def __init__(self, in_dataset, grid_size, rotate_aug=False, flip_aug=False, ignore_label=255, return_test=False,
-                 fixed_volume_space=False, max_volume_space=[50, 50, 1.5], min_volume_space=[-50, -50, -3], cut_mix=False):
+                 fixed_volume_space=False, max_volume_space=[50, 50, 1.5], min_volume_space=[-50, -50, -3],
+                 cut_mix=False):
         'Initialization'
         self.point_cloud_dataset = in_dataset
         self.grid_size = np.asarray(grid_size)
@@ -81,15 +77,15 @@ class voxel_dataset(data.Dataset):
         # cut mix data augmentation by grabbing instance and add it to a new scene
         if self.cut_mix:
             # load/grab the object
-            dir='/mnt/beegfs/gpu/argoverse-tracking-all-training/WOD/processed/Labeled/cut_mix'
+            dir = '/mnt/beegfs/gpu/argoverse-tracking-all-training/WOD/processed/Labeled/cut_mix'
             new_xyz = np.load(f"{dir}/pcl.npy")
             new_label_all = np.load(f"{dir}/ss_id.npy")
-            unique_obj = np.unique(new_label_all[:,0])
+            unique_obj = np.unique(new_label_all[:, 0])
 
             sel_obj_rand = np.random.choice(len(unique_obj), 5)
             new_label = []
             for id in sel_obj_rand:
-                obj_mask = new_label_all[:,0] == id
+                obj_mask = new_label_all[:, 0] == id
                 new_label.append(new_label_all[obj_mask])
 
             new_label = np.concatenate(new_label, axis=0)
@@ -107,13 +103,13 @@ class voxel_dataset(data.Dataset):
             j = np.matrix([[c, s], [-s, c]])
             new_xyz[:, :2] = np.dot(new_xyz[:, :2], j)
 
-        xyz = np.concatenate(xyz, new_xyz[:,:3], axis=0)
-        labels = np.concatenate(labels, new_label[:,1], axis=0)
+        xyz = np.concatenate(xyz, new_xyz[:, :3], axis=0)
+        labels = np.concatenate(labels, new_label[:, 1], axis=0)
 
         if sig is not None:
-            sig = np.concatenate(sig, new_xyz[:,3], axis=0)
+            sig = np.concatenate(sig, new_xyz[:, 3], axis=0)
         if lcw is not None:
-            lcw = np.concatenate(lcw, np.ones_like(new_label[:,1]), axis=0)
+            lcw = np.concatenate(lcw, np.ones_like(new_label[:, 1]), axis=0)
         # random data augmentation by rotation
         if self.rotate_aug:
             rotate_rad = np.deg2rad(np.random.random() * 360)
@@ -177,7 +173,8 @@ class voxel_dataset(data.Dataset):
         if len(data) == 2:
             return_fea = return_xyz
         elif len(data) >= 3:
-            return_fea =  np.concatenate((return_xyz, sig[..., np.newaxis]), axis=1) #np.concatenate((return_xyz, sig), axis=1)#
+            return_fea = np.concatenate((return_xyz, sig[..., np.newaxis]),
+                                        axis=1)  # np.concatenate((return_xyz, sig), axis=1)#
 
         if self.return_test:
             data_tuple += (grid_ind, labels, return_fea, index)
@@ -287,17 +284,17 @@ class cylinder_dataset(data.Dataset):
         # cut mix data augmentation by grabbing instance and add it to a new scene
         if self.cut_mix and ((split == 'train') or (split == 'ssl')):
             # load/grab the object
-            dir='/mnt/beegfs/gpu/argoverse-tracking-all-training/WOD/processed/Labeled/cut_mix'
+            dir = '/mnt/beegfs/gpu/argoverse-tracking-all-training/WOD/processed/Labeled/cut_mix'
             new_xyz_all = np.load(f"{dir}/pcl.npy")
             new_label_all = np.load(f"{dir}/ss_id.npy")
-            unique_obj = np.unique(new_label_all[:,0])
+            unique_obj = np.unique(new_label_all[:, 0])
             num_object = 10
 
             sel_obj_rand = np.random.choice(len(unique_obj), num_object)
             aug_label = []
             aug_xyz = []
             for id in sel_obj_rand:
-                obj_mask = new_label_all[:,0] == id
+                obj_mask = new_label_all[:, 0] == id
 
                 new_label = new_label_all[obj_mask]
                 new_xyz = new_xyz_all[obj_mask]
@@ -305,21 +302,21 @@ class cylinder_dataset(data.Dataset):
                 # perform random mix/placement on the road
                 road_mask = np.squeeze(labels) == 18
                 road_pcl = xyz[road_mask]
-                
-                mix_pos_rand = np.random.choice(len(road_pcl), 1)
-                
-                mix_position = road_pcl[mix_pos_rand,:]
 
-                mix_p_x = mix_position[:,0] - 0.5
-                mix_p_y = mix_position[:,1] - 0.5
-                mix_p_z = mix_position[:,2] 
-                
+                mix_pos_rand = np.random.choice(len(road_pcl), 1)
+
+                mix_position = road_pcl[mix_pos_rand, :]
+
+                mix_p_x = mix_position[:, 0] - 0.5
+                mix_p_y = mix_position[:, 1] - 0.5
+                mix_p_z = mix_position[:, 2]
+
                 new_xyz[:, 0] = new_xyz[:, 0] - np.max(new_xyz[:, 0])
-                new_xyz[:, 1] = new_xyz[:, 1] - np.max(new_xyz[:, 1])                
+                new_xyz[:, 1] = new_xyz[:, 1] - np.max(new_xyz[:, 1])
                 new_xyz[:, 2] = new_xyz[:, 2] - np.min(new_xyz[:, 2])
-                                
+
                 new_xyz[:, 0] = new_xyz[:, 0] + mix_p_x
-                new_xyz[:, 1] = new_xyz[:, 1] + mix_p_y                               
+                new_xyz[:, 1] = new_xyz[:, 1] + mix_p_y
                 new_xyz[:, 2] = new_xyz[:, 2] + mix_p_z
 
                 if flip_type == 1:
@@ -338,7 +335,7 @@ class cylinder_dataset(data.Dataset):
                 mframe = int(len(new_xyz) / 130000)
                 if mframe > 1:
                     for i in range(1, mframe):
-                        new_xyz[:,0] = new_xyz[:,0] - i/2
+                        new_xyz[:, 0] = new_xyz[:, 0] - i / 2
                         aug_label.append(new_label)
                         aug_xyz.append(new_xyz)
 
@@ -346,15 +343,15 @@ class cylinder_dataset(data.Dataset):
             new_xyz = np.concatenate(aug_xyz, axis=0)
 
             # combine gt data and cut_mix augmentation
-            xyz = np.concatenate([xyz, new_xyz[:,:3]], axis=0)
-            labels = np.concatenate([labels, new_label[:,1].reshape(-1,1)], axis=0)
+            xyz = np.concatenate([xyz, new_xyz[:, :3]], axis=0)
+            labels = np.concatenate([labels, new_label[:, 1].reshape(-1, 1)], axis=0)
 
             if sig is not None:
-                sig = np.concatenate([sig.reshape(-1,1), new_xyz[:,3].reshape(-1,1)], axis=0)
+                sig = np.concatenate([sig.reshape(-1, 1), new_xyz[:, 3].reshape(-1, 1)], axis=0)
                 sig = np.squeeze(sig)
             if lcw is not None:
-                new_lcw = np.ones_like(new_label[:,1]) * 100
-                lcw = np.concatenate([lcw, new_lcw.reshape(-1,1)], axis=0)
+                new_lcw = np.ones_like(new_label[:, 1]) * 100
+                lcw = np.concatenate([lcw, new_lcw.reshape(-1, 1)], axis=0)
 
         # random data augmentation by rotation
         if self.rotate_aug:
@@ -424,7 +421,6 @@ class cylinder_dataset(data.Dataset):
 
         data_tuple = (voxel_position, processed_label)
 
-
         # center data on each voxel for PTnet
         voxel_centers = (grid_ind.astype(np.float32) + 0.5) * intervals + min_bound
         return_xyz = xyz_pol - voxel_centers
@@ -433,7 +429,8 @@ class cylinder_dataset(data.Dataset):
         if len(data) == 2:
             return_fea = return_xyz
         elif len(data) >= 3:
-            return_fea = np.concatenate((return_xyz, sig[..., np.newaxis]), axis=1) #np.concatenate((return_xyz, sig), axis=1) #
+            return_fea = np.concatenate((return_xyz, sig[..., np.newaxis]),
+                                        axis=1)  # np.concatenate((return_xyz, sig), axis=1) #
 
         if self.return_test:
             data_tuple += (grid_ind, labels, return_fea, index)
@@ -556,7 +553,8 @@ class polar_dataset(data.Dataset):
         if len(data) == 2:
             return_fea = return_xyz
         elif len(data) >= 3:
-            return_fea = np.concatenate((return_xyz, sig[..., np.newaxis]), axis=1) #np.concatenate((return_xyz, sig), axis=1) #
+            return_fea = np.concatenate((return_xyz, sig[..., np.newaxis]),
+                                        axis=1)  # np.concatenate((return_xyz, sig), axis=1) #
 
         if self.return_test:
             data_tuple += (grid_ind, labels, return_fea, index)
@@ -633,7 +631,8 @@ def collate_fn_BEV(data):
         # return torch.from_numpy(data2stack), torch.from_numpy(label2stack), grid_ind_stack, point_label, xyz, ref_st_index, ref_end_index, lcw2stack
 
     # return torch.from_numpy(data2stack), torch.from_numpy(label2stack), grid_ind_stack, point_label, xyz
-    return torch.from_numpy(data2stack), torch.from_numpy(label2stack), grid_ind_stack, point_label, xyz, ref_st_index, ref_end_index, lcw2stack
+    return torch.from_numpy(data2stack), torch.from_numpy(
+        label2stack), grid_ind_stack, point_label, xyz, ref_st_index, ref_end_index, lcw2stack
 
 
 def collate_fn_BEV_test(data):

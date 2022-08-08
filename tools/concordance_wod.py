@@ -3,29 +3,23 @@
 # @file: concordance_wod.py
 
 
-import os
-import time
 import argparse
-import sys
-
-import numpy as np
 import glob
 import os
-import shutil
-import random
-import math
+
+import numpy as np
 
 
 def main(args):
-    #sequence = ["04"]
-    #des_seq = ["34"]
+    # sequence = ["04"]
+    # des_seq = ["34"]
     source_dir = args.source_dir
     teacher_1 = args.teacher1
     teacher_2 = args.teacher2
     teacher_3 = args.teacher3
-    lamda  = args.lamda
+    lamda = args.lamda
 
-    #sequence = ["00", "01", "02","03", "04", "05", "06", "07", "09", "10"]
+    # sequence = ["00", "01", "02","03", "04", "05", "06", "07", "09", "10"]
 
     sequence = os.listdir(source_dir)
 
@@ -47,9 +41,10 @@ def main(args):
             pred = np.array([np.load(preds_t1[frame]).reshape((-1, 1)), np.load(preds_t2[frame]).reshape((-1, 1))])
             prob = np.array([np.load(probs_t1[frame]).reshape((-1, 1)), np.load(probs_t2[frame]).reshape((-1, 1))])
             if teacher_3 is not None:
-                pred = np.array([np.load(preds_t1[frame]).reshape((-1, 1)), np.load(preds_t2[frame]).reshape((-1, 1)), np.load(preds_t3[frame]).reshape((-1, 1))])
-                prob = np.array([np.load(probs_t1[frame]).reshape((-1, 1)), np.load(probs_t2[frame]).reshape((-1, 1)), np.load(probs_t3[frame]).reshape((-1, 1))])
-
+                pred = np.array([np.load(preds_t1[frame]).reshape((-1, 1)), np.load(preds_t2[frame]).reshape((-1, 1)),
+                                 np.load(preds_t3[frame]).reshape((-1, 1))])
+                prob = np.array([np.load(probs_t1[frame]).reshape((-1, 1)), np.load(probs_t2[frame]).reshape((-1, 1)),
+                                 np.load(probs_t3[frame]).reshape((-1, 1))])
 
             max_pob = prob.max(axis=0)
             max_pob_id = prob.argmax(axis=0)
@@ -65,7 +60,7 @@ def main(args):
                 weight += concored.astype(int)
 
             best_prob = max_pob
-            new_prob = best_prob + ((weight-1) * lamda)
+            new_prob = best_prob + ((weight - 1) * lamda)
             new_prob = np.minimum(np.ones_like(best_prob), new_prob)
             new_prob = new_prob.astype(np.float32)
             '''
@@ -77,14 +72,15 @@ def main(args):
             # best_pred.tofile(os.path.join(source_dir, sq, f"predictions_f11_33", frame_name + '.npy'))
             # new_prob.tofile(os.path.join(source_dir, sq,  f"probability_f11_33", frame_name + '.npy'))
             np.save(os.path.join(source_dir, sq, f"predictions_f11_33", frame_name), np.squeeze(best_pred))
-            np.save(os.path.join(source_dir, sq,  f"probability_f11_33", frame_name), np.squeeze(new_prob))
+            np.save(os.path.join(source_dir, sq, f"probability_f11_33", frame_name), np.squeeze(new_prob))
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-l', '--lamda', default=0.1, type=float)
     parser.add_argument('-b', '--best', default=True)
-    parser.add_argument('-s', '--source_dir', default='/mnt/beegfs/gpu/argoverse-tracking-all-training/WOD/processed/Unlabeled/training')
+    parser.add_argument('-s', '--source_dir',
+                        default='/mnt/beegfs/gpu/argoverse-tracking-all-training/WOD/processed/Unlabeled/training')
     parser.add_argument('-x', '--teacher1', required=False, default="f1_1")
     parser.add_argument('-y', '--teacher2', required=False, default="f2_2")
     parser.add_argument('-z', '--teacher3', default="f3_3")
