@@ -1,0 +1,86 @@
+# This file is covered by the LICENSE file in the root of this project.
+labels:
+  0: 'noise'
+  1: "vehicle"
+  2: "person"
+  3: "road"
+  4: "sidewalk"
+  5: "terrain"
+  6: "man-made"
+  7: "vegetation"
+
+# content: # as a ratio with the total number of points
+# classes that are indistinguishable from single scan or inconsistent in
+# ground truth are mapped to their closest equivalent
+learning_map:
+  0: 0
+  1: 6 # manmade
+  2: 6 # fence  --> mapped to "manmade"
+  3: 0 # other  --> mapped to "undefined"
+  4: 2 # pedestrian
+  5: 6 # pole
+  6: 3 # roadlines  --> mapped to "road"
+  7: 3 # road
+  8: 4 # sidewalk  --> mapped to "road"
+  9: 7 # vegetation
+  10: 1 # vehicle/car
+  11: 6 # wall  --> mapped to "manmade"
+  12: 6 # trafficsign --> mapped to "sign"
+  13: 0 # sky --> mapped to "undefined"
+  14: 0 # grond  --> mapped to "road"
+  15: 6 # bridge --> mapped to "manmade"
+  16: 6 # railtrack  --> mapped to "manmade"
+  17: 6 # guardrail --> mapped to "manmade"
+  18: 0 # traficlight --> mapped to "sign"
+  19: 0 # static --> mapped to "undefined"
+  20: 0 # dynamic --> mapped to "undefined"
+  21: 0 # water --> mapped to "undefined"
+  22: 5 # terrain
+
+learning_map_inv: # inverse of previous map
+  0 : 0
+  1 : 1
+  2 : 4
+  3 : 7
+  4 : 8
+  5 : 22
+  6 : 1
+  7 : 9
+
+learning_ignore: # Ignore classes
+  0: True      # "unlabeled", and others ignored
+  1: False     # "vehicle"
+  2: False     # "pedestrian"
+  3: False     # "road"
+  4: False     # "sidewalk"
+  5: False     # "terrain"
+  6: False     # "manmade"
+  7: False     # "vegetation"
+
+split: # sequence numbers
+  train:
+    - '00'
+    - '01'
+    - '02'
+    - '03'
+    - '04'
+    - '05'
+    - '06'
+    - '07'
+    - '09'
+    - '10'
+  valid:
+    - '08'
+  test: #
+    - '11'
+    - '12'
+    - '13'
+    - '14'
+    - '15'
+    - '16'
+    - '17'
+    - '18'
+    - '19'
+    - '20'
+    - '21'
+
