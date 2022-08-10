@@ -1,0 +1,23 @@
+Validation per class iou: 
+car : 93.53%
+truck : 30.48%
+bicyclist : 81.42%
+person : 56.03%
+pole : 44.22%
+bicycle : 8.18%
+building : 78.60%
+vegetation : 84.08%
+trunk : 51.55%
+road : 80.25%
+
+100%|██████████| 2036/2036 [1:10:50<00:00,  2.09s/it]
+Validation per class iou: 
+car : 91.83%
+truck : 17.44%
+bicyclist : 69.59%
+person : 32.76%
+pole : 36.66%
+building : 78.24%
+vegetation : 83.53%
+trunk : 36.02%
+road : 72.10%
