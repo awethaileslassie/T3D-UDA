@@ -33,8 +33,8 @@ RUN unzip hotfixes -d /hotfixes
 WORKDIR /spconv
 RUN git checkout 8da6f967fb9a054d8870c3515b1b44eca2103634 
 # needs to be done before we can apply the patches
-RUN git config --global user.email "test@test.com"
-RUN git config --global user.name "Test"
+RUN git configs --global user.email "test@test.com"
+RUN git configs --global user.name "Test"
 RUN git am /hotfixes/0001-fix-problem-with-torch-1.4.patch 
 RUN git am /hotfixes/0001-Allow-to-specifiy-CUDA_ROOT-directory-and-pick-corre.patch
 RUN apt install -y libboost-all-dev cmake

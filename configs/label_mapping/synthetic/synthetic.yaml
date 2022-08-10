@@ -1,0 +1,74 @@
+# This file is covered by the LICENSE file in the root of this project.
+labels:
+  0: 'noise'
+  1: 'building'
+  2: 'fences'
+  3: 'other'
+  4: 'pedestrian'
+  5: 'pole'
+  6: 'roadlines'
+  7: 'road'
+  8: 'sidewalk'
+  9: 'vegeation'
+  10: 'vehicle'
+  11: 'wall'
+  12: 'trafficsing'
+  13: 'sky'
+  14: 'ground'
+  15: 'bridge'
+  16: 'railtrack'
+  17: 'guardrail'
+  18: 'trafficlight'
+  19: 'static'
+  20: 'dynamic'
+  21: 'water'
+  22: 'terrain'
+
+# content: # as a ratio with the total number of points
+# classes that are indistinguishable from single scan or inconsistent in
+# ground truth are mapped to their closest equivalent
+learning_map:
+  0: 0
+  1: 7 # building
+  2: 7 # fence  --> mapped to "building"
+  3: 0 # other  --> mapped to "undefined"
+  4: 3 # pedestrian
+  5: 5 # pole
+  6: 10 # roadlines  --> mapped to "road"
+  7: 10 # road
+  8: 10 # sidewalk  --> mapped to "road"
+  9: 8 # vegetation
+  10: 1 # vehicle/car
+  11: 7 # wall  --> mapped to "building"
+  12: 4 # trafficsign --> mapped to "sign"
+  13: 0 # sky --> mapped to "undefined"
+  14: 10 # grond  --> mapped to "road"
+  15: 7 # bridge --> mapped to "building"
+  16: 7 # railtrack  --> mapped to "building"
+  17: 7 # guardrail --> mapped to "building"
+  18: 4 # traficlight --> mapped to "sign"
+  19: 0 # static --> mapped to "undefined"
+  20: 0 # dynamic --> mapped to "undefined"
+  21: 11 # water --> mapped to "undefined"
+  22: 11 # terrain --> mapped to "grond"
+
+learning_map_inv: # inverse of previous map
+  0: 0
+  1: 1
+  2: 4
+  3: 7
+  4: 8
+  5: 22
+  6: 1
+  7: 9
+
+learning_ignore: # Ignore classes
+  -1: True      # "unlabeled", and others ignored
+  0: False
+  1: False
+  2: False
+  3: False
+  4: False
+  5: False
+  6: False
+

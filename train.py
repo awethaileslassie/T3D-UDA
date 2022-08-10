@@ -15,7 +15,7 @@ from torch.nn.parallel import DistributedDataParallel
 from tqdm import tqdm
 
 from builder import data_builder, model_builder, loss_builder
-from config.config import load_config_data
+from configs.config import load_config_data
 from dataloader.pc_dataset import get_label_name, update_config
 from utils.load_save_util import load_checkpoint
 from utils.metric_util import per_class_iu, fast_hist_crop
@@ -62,7 +62,7 @@ def main(args):
 
     configs = load_config_data(config_path)
 
-    # send config parameters to pc_dataset
+    # send configs parameters to pc_dataset
     update_config(configs)
 
     dataset_config = configs['dataset_params']
@@ -307,8 +307,8 @@ def main(args):
 if __name__ == '__main__':
     # Training settings
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-y', '--config_path', default='config/wod/wod_f0_0_intensity_beam32.yaml')
-    # parser.add_argument('-y', '--config_path', default='config/semantickitti/semantickitti_f3_3_s10.yaml')
+    parser.add_argument('-y', '--config_path', default='configs/wod/wod_f0_0_intensity_beam32.yaml')
+    # parser.add_argument('-y', '--config_path', default='configs/semantickitti/semantickitti_f3_3_s10.yaml')
     parser.add_argument('-g', '--mgpus', action='store_true', default=False)
     parser.add_argument("--local_rank", default=0, type=int)
     args = parser.parse_args()

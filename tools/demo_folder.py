@@ -13,7 +13,7 @@ import torch.optim as optim
 import yaml
 
 from builder import model_builder, loss_builder
-from config.config import load_config_data
+from configs.config import load_config_data
 from dataloader.dataset_semantickitti import get_model_class, collate_fn_BEV
 from dataloader.pc_dataset import get_label_name
 from dataloader.pc_dataset import get_pc_model_class
@@ -139,7 +139,7 @@ def main(args):
 if __name__ == '__main__':
     # Training settings
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-y', '--config_path', default='config/semantickitti.yaml')
+    parser.add_argument('-y', '--config_path', default='configs/semantickitti.yaml')
     parser.add_argument('--demo-folder', type=str, default='', help='path to the folder containing demo lidar scans',
                         required=True)
     parser.add_argument('--save-folder', type=str, default='', help='path to save your result', required=True)

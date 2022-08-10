@@ -16,7 +16,7 @@ from torch.nn.parallel import DistributedDataParallel
 from tqdm import tqdm
 
 from builder import data_builder, model_builder, loss_builder
-from config.config import load_config_data
+from configs.config import load_config_data
 from dataloader.pc_dataset import get_label_name, get_label_inv_name, update_config
 from utils.load_save_util import load_checkpoint
 from utils.metric_util import per_class_iu, fast_hist_crop, fast_ups_crop
@@ -71,7 +71,7 @@ def main(args):
     if args.mode == 'infer' or args.mode == 'val' or args.mode == 'test':
         configs['train_params']['ssl'] = False
 
-    # send config parameters to pc_dataset
+    # send configs parameters to pc_dataset
     update_config(configs)
 
     dataset_config = configs['dataset_params']
@@ -315,7 +315,7 @@ if __name__ == '__main__':
     # Training settings
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('-y', '--config_path',
-                        default='config/da_wod_kitti/uda_wod_kitti_f0_0_intensity.yaml')
+                        default='configs/da_wod_kitti/uda_wod_kitti_f0_0_intensity.yaml')
     parser.add_argument('-g', '--mgpus', action='store_true', default=False)
     parser.add_argument('-m', '--mode', default='val')
     parser.add_argument('-s', '--save', default=True)

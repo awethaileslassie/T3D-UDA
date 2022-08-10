@@ -27,6 +27,6 @@ name=cylinder_asym_networks
 export NCCL_LL_THRESHOLD=1
 
 
-#CUDA_VISIBLE_DEVICES=0,1,2 NCCL_P2P_DISABLE=1 python -u -m torch.distributed.launch --nproc_per_node=3 --master_port=$RANDOM test_cylinder_asym_wod.py --config_path 'config/wod/wod_train_infer_f3_3.yaml' --mode 'test' --save 'True' 2>&1 | tee logs_dir/${name}_logs_wod_f3_3_infer_train_v3_2.txt
+#CUDA_VISIBLE_DEVICES=0,1,2 NCCL_P2P_DISABLE=1 python -u -m torch.distributed.launch --nproc_per_node=3 --master_port=$RANDOM test_cylinder_asym_wod.py --config_path 'configs/wod/wod_train_infer_f3_3.yaml' --mode 'test' --save 'True' 2>&1 | tee logs_dir/${name}_logs_wod_f3_3_infer_train_v3_2.txt
 
-python test_wod.py --config_path 'config/wod/wod_f0_0_intensity.yaml' --mode 'test' --save 'True' 2>&1 | tee logs_dir/${name}_logs_wod_64beam_f0_0_intensity_infer_train_v3_2_valeo.txt
+python test_wod.py --config_path 'configs/wod/wod_f0_0_intensity.yaml' --mode 'test' --save 'True' 2>&1 | tee logs_dir/${name}_logs_wod_64beam_f0_0_intensity_infer_train_v3_2_valeo.txt
