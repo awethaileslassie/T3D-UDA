@@ -26,7 +26,7 @@ dataset_params:
   ignore_label: 0 # undefined
   return_test: False
   fixed_volume_space: True
-  label_mapping: "./config/label_mapping/wod/wod-multiscan_labelled.yaml"
+  label_mapping: "./configs/label_mapping/da_kitti_synt4d/synthetic.yaml"
   max_volume_space:
     - 100 #50
     - 3.1415926
@@ -50,42 +50,41 @@ val_data_loader:
   data_path: "/mnt/beegfs/gpu/argoverse-tracking-all-training/WOD/processed/Labeled/validation"
   imageset: "val"
   return_ref: True
-  batch_size: 2
+  batch_size: 3
   shuffle: False
   num_workers: 0
 
 test_data_loader:
-  data_path: "/home/gebreawe/Curb_data/processed" #"/mnt/beegfs/gpu/argoverse-tracking-all-training/Valeo/Curb_segmentation/processed"
+  data_path: "/mnt/beegfs/gpu/argoverse-tracking-all-training/WOD/processed/Unlabeled/testing"
   imageset: "test"
   return_ref: True
-  batch_size: 8
+  batch_size: 4
   shuffle: False
-  num_workers: 0
+  num_workers: 4
 
 ssl_data_loader:
-  data_path: "/home/gebreawe/Curb_data/processed" #"/mnt/beegfs/gpu/argoverse-tracking-all-training/Valeo/Curb_segmentation/processed"
+  data_path: "/mnt/beegfs/gpu/argoverse-tracking-all-training/WOD/processed/Unlabeled/testing"
   imageset: "pseudo"
   return_ref: True
-  batch_size: 2
+  batch_size: 4
   shuffle: False
-  num_workers: 0
+  num_workers: 4
 
 
 ###################
 ## test params
 train_params:
-  model_load_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST_Cylinder_3D/model_save_dir/wod_save_f3_3_labelled_b3_v3_2_time_beam32.pt"
-  model_save_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST_Cylinder_3D/model_save_dir/wod_save_f3_3_labelled_b3_v3_2_time_beam32.pt"
+  model_load_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/synth4dkitti_f3_3_time.pt"
+  model_save_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/synth4dkitti_f3_3_time.pt"
   checkpoint_every_n_steps: 1000
   max_num_epochs: 40
   eval_every_n_steps: 1000
-  learning_rate: 0.01
+  learning_rate: 0.001
   past: 3
   future: 3
-  T_past: 332
-  T_future: 332
+  T_past: 3
+  T_future: 3
   ssl: False
   rgb: False
   uda: False
   time: True
-

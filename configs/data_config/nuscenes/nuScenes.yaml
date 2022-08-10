@@ -27,7 +27,7 @@ dataset_params:
   ignore_label: 0
   return_test: False
   fixed_volume_space: True
-  label_mapping: "./config/label_mapping/nuscenes.yaml"
+  label_mapping: "./configs/label_mapping/nuscenes.yaml"
   max_volume_space:
     - 50
     - 3.1415926

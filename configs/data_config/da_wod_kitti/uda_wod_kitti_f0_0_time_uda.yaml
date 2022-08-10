@@ -22,13 +22,13 @@ model_params:
 ## Dataset options
 dataset_params:
   dataset_type: "cylinder_dataset"
-  pc_dataset_type: "WOD_multiscan" #  #  # "SemKITTI_sk" #
+  pc_dataset_type: "SemKITTI_sk_multiscan" #  #  # "SemKITTI_sk" #
   ignore_label: 0 # undefined
   return_test: False
   fixed_volume_space: True
-  label_mapping: "./config/label_mapping/wod/wod-multiscan_labelled.yaml"
+  label_mapping: "./configs/label_mapping/da_wod_kitti/kitti.yaml"
   max_volume_space:
-    - 100 #50
+    - 50
     - 3.1415926
     - 4
   min_volume_space:
@@ -39,51 +39,51 @@ dataset_params:
 ###################
 ## Data_loader options
 train_data_loader:
-  data_path: "/mnt/beegfs/gpu/argoverse-tracking-all-training/WOD/processed/Labeled_32_beam/training"
+  data_path: "/mnt/beegfs/gpu/argoverse-tracking-all-training/semantic-kitti/dataset/sequences"
   imageset: "train"
   return_ref: True
-  batch_size: 3 #4
+  batch_size: 4 #4
   shuffle: True
   num_workers: 0
 
 val_data_loader:
-  data_path: "/mnt/beegfs/gpu/argoverse-tracking-all-training/WOD/processed/Labeled_32_beam/validation"
+  data_path: "/mnt/beegfs/gpu/argoverse-tracking-all-training/semantic-kitti/dataset/sequences"
   imageset: "val"
   return_ref: True
-  batch_size: 3
+  batch_size: 4
   shuffle: False
   num_workers: 0
 
 test_data_loader:
-  data_path: "/mnt/beegfs/gpu/argoverse-tracking-all-training/Valeo/Curb_segmentation/processed"
+  data_path: "/mnt/beegfs/gpu/argoverse-tracking-all-training/semantic-kitti/dataset/sequences"
   imageset: "test"
   return_ref: True
-  batch_size: 20
+  batch_size: 4
   shuffle: False
   num_workers: 4
 
 ssl_data_loader:
-  data_path: "/mnt/beegfs/gpu/argoverse-tracking-all-training/WOD/processed/Unlabeled/testing"
+  data_path: "/mnt/beegfs/gpu/argoverse-tracking-all-training/semantic-kitti/dataset/sequences"
   imageset: "pseudo"
   return_ref: True
-  batch_size: 2
+  batch_size: 4
   shuffle: False
   num_workers: 4
 
 ###################
 ## test params
 train_params:
-  model_load_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST_Cylinder_3D/model_save_dir/wod_save_f3_3_32beam_intensity.pt"
-  model_save_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST_Cylinder_3D/model_save_dir/wod_save_f3_3_32beam_intensity.pt"
+  model_load_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST-UDA/model_save_dir/wod_save_f0_0_time.pt"
+  model_save_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST-UDA/model_save_dir/wod_save_f0_0_time.pt"
   checkpoint_every_n_steps: 1000
   max_num_epochs: 40
   eval_every_n_steps: 1000
   learning_rate: 0.001
-  past: 3
-  future: 3
-  T_past: '3_32_intensity'
-  T_future: '3_32_intensity'
+  past: 0
+  future: 0
+  T_past: '0_time_uda'
+  T_future: '0_time_uda'
   ssl: False
   rgb: False
-  uda: False
-  time: False
+  uda: True
+  time: True

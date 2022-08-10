@@ -26,7 +26,7 @@ dataset_params:
   ignore_label: 0 # undefined
   return_test: False
   fixed_volume_space: True
-  label_mapping: "./config/label_mapping/wod/wod-multiscan_labelled.yaml"
+  label_mapping: "./configs/label_mapping/wod/wod-multiscan_labelled.yaml"
   max_volume_space:
     - 100 #50
     - 3.1415926
@@ -55,10 +55,10 @@ val_data_loader:
   num_workers: 0
 
 test_data_loader:
-  data_path: "/mnt/beegfs/gpu/argoverse-tracking-all-training/Valeo/Curb_segmentation/processed"
+  data_path: "/mnt/beegfs/gpu/argoverse-tracking-all-training/WOD/processed/Unlabeled/testing"
   imageset: "test"
   return_ref: True
-  batch_size: 12
+  batch_size: 4
   shuffle: False
   num_workers: 4
 
@@ -70,20 +70,21 @@ ssl_data_loader:
   shuffle: False
   num_workers: 4
 
+
 ###################
 ## test params
 train_params:
-  model_load_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST-UDA/model_save_dir/wod_save_f0_0_32beam_intensity.pt"
-  model_save_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST-UDA/model_save_dir/wod_save_f0_0_32beam_intensity.pt"
+  model_load_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST-UDA/model_save_dir/wod_save_f0_0_32beam_time.pt"
+  model_save_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST-UDA/model_save_dir/wod_save_f0_0_32beam_time.pt"
   checkpoint_every_n_steps: 1000
   max_num_epochs: 40
   eval_every_n_steps: 1000
   learning_rate: 0.001
   past: 0
   future: 0
-  T_past: '0_32_intensity'
-  T_future: '0_32_intensity'
+  T_past: 032
+  T_future: 032
   ssl: False
   rgb: False
   uda: False
-  time: False
+  time: True
