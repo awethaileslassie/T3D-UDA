@@ -26,5 +26,5 @@ name=cylinder_asym_networks
 
 export NCCL_LL_THRESHOLD=0
 
-python test.py --config_path 'config/da_wod_kitti/uda_wod_kitti_f0_0_time_uda.yaml' --mode 'val' --challenge 'False' --save 'True' 2>&1 | tee logs_dir/${name}_logs_val_uda_wod_kitti_f0_0_time.txt
+python test.py --config_path 'configs/data_config/da_wod_kitti/uda_wod_kitti_f0_0_time_uda.yaml' --mode 'val' --challenge 'False' --save 'True' 2>&1 | tee logs_dir/${name}_logs_val_uda_wod_kitti_f0_0_time.txt
 

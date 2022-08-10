@@ -26,4 +26,4 @@ name=cylinder_asym_networks
 
 export NCCL_LL_THRESHOLD=0
 
-CUDA_VISIBLE_DEVICES=0,1 NCCL_P2P_DISABLE=1 python -u -m torch.distributed.launch --nproc_per_node=2 --master_port=$RANDOM test_cylinder_asym.py --config_path 'config/semantickitti_mvo_f1_0.yaml' --mode 'val' --save 'True' 2>&1 | tee logs_dir/${name}_logs_val_mvo_f1_0_T11_33_b4.txt
+CUDA_VISIBLE_DEVICES=0,1 NCCL_P2P_DISABLE=1 python -u -m torch.distributed.launch --nproc_per_node=2 --master_port=$RANDOM test_cylinder_asym.py --config_path 'configs/semantickitti_mvo_f1_0.yaml' --mode 'val' --save 'True' 2>&1 | tee logs_dir/${name}_logs_val_mvo_f1_0_T11_33_b4.txt
