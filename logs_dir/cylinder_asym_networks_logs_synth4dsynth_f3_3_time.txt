@@ -1,0 +1,130 @@
+train_uda.py --config_path configs/data_config/synthetic/synth4dsynth_f3_3_time.yaml
+Namespace(config_path='configs/data_config/synthetic/synth4dsynth_f3_3_time.yaml', mgpus=False, local_rank=0)
+distributed: False
+[480 360  32]
+[480 360  32]
+|-------------------------Training started-----------------------------------------|
+focal_loss:False, weighted_cross_entropy: False
+  0%|          | 0/2500 [00:00<?, ?it/s]  4%|▍         | 100/2500 [02:33<1:01:34,  1.54s/it]  8%|▊         | 200/2500 [05:06<58:48,  1.53s/it]   12%|█▏        | 300/2500 [07:39<56:04,  1.53s/it] 16%|█▌        | 400/2500 [10:12<53:35,  1.53s/it] 20%|██        | 500/2500 [12:44<50:49,  1.52s/it] 24%|██▍       | 600/2500 [15:14<48:06,  1.52s/it] 28%|██▊       | 700/2500 [17:46<45:34,  1.52s/it] 32%|███▏      | 800/2500 [20:21<43:18,  1.53s/it] 36%|███▌      | 900/2500 [22:51<40:28,  1.52s/it] 40%|████      | 1000/2500 [25:21<37:50,  1.51s/it] 44%|████▍     | 1100/2500 [27:49<35:04,  1.50s/it] 48%|████▊     | 1200/2500 [30:22<32:45,  1.51s/it] 52%|█████▏    | 1300/2500 [32:54<30:16,  1.51s/it] 56%|█████▌    | 1400/2500 [35:24<27:41,  1.51s/it] 60%|██████    | 1500/2500 [37:53<25:04,  1.50s/it] 64%|██████▍   | 1600/2500 [40:27<22:42,  1.51s/it] 68%|██████▊   | 1700/2500 [43:01<20:17,  1.52s/it] 72%|███████▏  | 1800/2500 [45:32<17:43,  1.52s/it] 76%|███████▌  | 1900/2500 [48:00<15:04,  1.51s/it] 80%|████████  | 2000/2500 [50:33<12:37,  1.51s/it] 84%|████████▍ | 2100/2500 [53:09<10:10,  1.53s/it] 88%|████████▊ | 2200/2500 [55:41<07:37,  1.53s/it] 92%|█████████▏| 2300/2500 [58:08<05:01,  1.51s/it] 96%|█████████▌| 2400/2500 [1:00:40<02:31,  1.51s/it]100%|██████████| 2500/2500 [1:03:14<00:00,  1.52s/it]epoch 0 iter    99, loss: 3.046
+
+epoch 0 iter   199, loss: 3.048
+
+epoch 0 iter   299, loss: 3.047
+
+epoch 0 iter   399, loss: 3.047
+
+epoch 0 iter   499, loss: 3.048
+
+epoch 0 iter   599, loss: 3.049
+
+epoch 0 iter   699, loss: 3.048
+
+epoch 0 iter   799, loss: 3.048
+
+epoch 0 iter   899, loss: 3.049
+
+epoch 0 iter   999, loss: 3.049
+
+epoch 0 iter  1099, loss: 3.049
+
+epoch 0 iter  1199, loss: 3.049
+
+epoch 0 iter  1299, loss: 3.049
+
+epoch 0 iter  1399, loss: 3.049
+
+epoch 0 iter  1499, loss: 3.049
+
+epoch 0 iter  1599, loss: 3.048
+
+epoch 0 iter  1699, loss: 3.048
+
+epoch 0 iter  1799, loss: 3.048
+
+epoch 0 iter  1899, loss: 3.049
+
+epoch 0 iter  1999, loss: 3.049
+
+epoch 0 iter  2099, loss: 3.049
+
+epoch 0 iter  2199, loss: 3.048
+
+epoch 0 iter  2299, loss: 3.049
+
+epoch 0 iter  2399, loss: 3.049
+
+epoch 0 iter  2499, loss: 3.048
+
+--------------- epoch: 0 ----------------
+Validation per class iou: 
+vehicle : 10.35%
+pedestrian : 0.93%
+roadlines : 4.22%
+sidewalk : 6.67%
+terrain : 0.49%
+building : 6.12%
+vegeation : 3.47%
+Current val miou is 4.608 while the best val miou is 4.608
+Current val loss is 3.023
+2600it [1:54:12, 10.24s/it]                          2700it [1:57:16,  7.72s/it]2800it [2:00:29,  5.98s/it]2900it [2:03:36,  4.75s/it]3000it [2:06:35,  3.86s/it]3100it [2:09:43,  3.27s/it]3200it [2:12:56,  2.87s/it]3300it [2:16:02,  2.56s/it]3400it [2:19:04,  2.34s/it]3500it [2:22:09,  2.19s/it]3600it [2:25:17,  2.10s/it]3700it [2:28:26,  2.04s/it]3800it [2:31:35,  1.99s/it]3900it [2:34:47,  1.97s/it]4000it [2:37:52,  1.93s/it]4100it [2:40:58,  1.91s/it]4200it [2:44:06,  1.90s/it]4300it [2:47:16,  1.90s/it]4400it [2:50:29,  1.91s/it]4500it [2:53:36,  1.90s/it]4600it [2:56:40,  1.88s/it]4700it [2:59:40,  1.86s/it]4800it [3:02:48,  1.86s/it]4900it [3:05:57,  1.87s/it]5000it [3:09:01,  1.86s/it]epoch 1 iter    99, loss: 3.619
+
+epoch 1 iter   199, loss: 2.844
+
+epoch 1 iter   299, loss: 2.583
+
+epoch 1 iter   399, loss: 2.398
+
+epoch 1 iter   499, loss: 2.247
+
+epoch 1 iter   599, loss: 2.127
+
+epoch 1 iter   699, loss: 2.035
+
+epoch 1 iter   799, loss: 1.945
+
+epoch 1 iter   899, loss: 1.874
+
+epoch 1 iter   999, loss: 1.810
+
+epoch 1 iter  1099, loss: 1.754
+
+epoch 1 iter  1199, loss: 1.705
+
+epoch 1 iter  1299, loss: 1.663
+
+epoch 1 iter  1399, loss: 1.624
+
+epoch 1 iter  1499, loss: 1.583
+
+epoch 1 iter  1599, loss: 1.547
+
+epoch 1 iter  1699, loss: 1.514
+
+epoch 1 iter  1799, loss: 1.485
+
+epoch 1 iter  1899, loss: 1.459
+
+epoch 1 iter  1999, loss: 1.435
+
+epoch 1 iter  2099, loss: 1.417
+
+epoch 1 iter  2199, loss: 1.395
+
+epoch 1 iter  2299, loss: 1.381
+
+epoch 1 iter  2399, loss: 1.365
+
+epoch 1 iter  2499, loss: 1.349
+
+--------------- epoch: 1 ----------------
+Validation per class iou: 
+vehicle : 95.93%
+pedestrian : 76.33%
+roadlines : 44.71%
+sidewalk : 4.05%
+terrain : 1.61%
+building : 32.81%
+vegeation : 39.92%
+Current val miou is 42.195 while the best val miou is 42.195
+Current val loss is 2.685
+5100it [3:54:42,  9.53s/it]5200it [3:57:50,  7.23s/it]

@@ -1,28 +1,17 @@
 # This file is covered by the LICENSE file in the root of this project.
 labels:
   0: "Undefined"
-  1: "Car"
-  2: "Truck"
-  3: "Bus"
-  4: "Other Vehicle" # Other small vehicles (e.g. pedicab) and large vehicles (e.g. construction vehicles, RV, limo, tram).
-  5: "Motorcyclist"
-  6: "Bicyclist"
-  7: "Pedestrian"
-  8: "Sign"
-  9: "Traffic Light"
-  10: "Pole" # Lamp post, traffic sign pole etc.
-  11: "Construction Cone" # Construction cone/pole.
-  12: "Bicycle"
-  13: "Motorcycle"
-  14: "Building"
-  15: "Vegetation" # Bushes, tree branches, tall grasses, flowers etc.
-  16: "Tree Trunk"
-  17: "Curb" # Curb on the edge of roads. This does not include road boundaries if there’s no curb.
-  18: "Road" # Surface a vehicle could drive on. This include the driveway connecting // parking lot and road over a section of sidewalk.
-  19: "Lane Marker" # Marking on the road that’s specifically for defining lanes such as // single/double white/yellow lines.
-  20: "Other Ground" # Marking on the road other than lane markers, bumps, cateyes, railtracks // etc.
-  21: "Walkable" # Most horizontal surface that’s not drivable, e.g. grassy hill, // pedestrian walkway stairs etc.
-  22: "Sidewalk" # Nicely paved walkable surface when pedestrians most likely to walk on.
+  1: "car"
+  2: "bicycle"
+  3: "motorcycle"
+  4: "other-vehicle"
+  5: "person"
+  6: "truck"
+  7: "road"
+  8: "sidewalk"
+  9: "terrain"
+  10: "vegetation"
+  11: "man-made"
 
 color_map: # bgr
   0: [ 0, 0, 0 ]
@@ -37,17 +26,7 @@ color_map: # bgr
   9: [ 30, 30, 255 ]
   10: [ 200, 40, 255 ]
   11: [ 90, 30, 150 ]
-  12: [ 255, 0, 255 ]
-  13: [ 255, 150, 255 ]
-  14: [ 75, 0, 75 ]
-  15: [ 75, 0, 175 ]
-  16: [ 0, 200, 255 ]
-  17: [ 50, 120, 255 ]
-  18: [ 0, 150, 255 ]
-  19: [ 170, 255, 150 ]
-  20: [ 0, 175, 0 ]
-  21: [ 0, 60, 135 ]
-  22: [ 80, 240, 150 ]
+
 
 content: # as a ratio with the total number of points
   0: 1.018889854628292943
@@ -62,94 +41,62 @@ content: # as a ratio with the total number of points
   9: 1.0039048553037472045
   10: 1.040818519255974316
   11: 1.00016609538710764618
-  12: 1.00016609538710764618
-  13: 1.0027879693665067774
-  14: 1.0027879693665067774
-  15: 1.00039838616015114444
-  16: 1.0020633612104619787
-  17: 1.0020633612104619787
-  18: 1.0020633612104619787
-  19: 1.0020633612104619787
-  20: 1.0016218197275284021
-  21: 1.0020633612104619787
-  22: 1.0016218197275284021
 
 # classes that are indistinguishable from single scan or inconsistent in
 # ground truth are mapped to their closest equivalent
 learning_map:
   0: 0 # "Undefined"
   1: 1 # "Car"
-  2: 2 # "Truck"
-  3: 3 # "Bus"
-  4: 4 # "Other Vehicle"
-  5: 5 # "Motorcyclist"
-  6: 6 # "Bicyclist"
-  7: 7 # "Pedestrian"
-  8: 8 # "Sign"
-  9: 9 # "Traffic Light"
-  10: 10 # "Pole"
-  11: 11 # "Construction Cone"
-  12: 12 # "Bicycle"
-  13: 13 # "Motorcycle"
-  14: 14 # "Building"
-  15: 15 # "Vegetation"
-  16: 16 # "Tree Trunk"
-  17: 17 # "Curb"
-  18: 18 # "Road"
-  19: 19 # "Lane Marker"
-  20: 20 # "Walkable"
-  21: 21 # "Sidewalk"
-  22: 22 # "Other Ground"
+  2: 6 # "Truck"
+  3: 2 # "Bus"
+  4: 4 # "Other Vehicle" # Other small vehicles (e.g. pedicab) and large vehicles (e.g. construction vehicles, RV, limo, tram).
+  5: 3 # "Motorcyclist"
+  6: 2 # "Bicyclist"
+  7: 5 # "Pedestrian"
+  8: 11 # "Sign"
+  9: 11 # "Traffic Light"
+  10: 11 # "Pole" # Lamp post, traffic sign pole etc.
+  11: 11 # "Construction Cone" # Construction cone/pole.
+  12: 2 # "Bicycle"
+  13: 3 # "Motorcycle"
+  14: 11 # "Building"
+  15: 10 # "Vegetation" # Bushes, tree branches, tall grasses, flowers etc.
+  16: 11 # "Tree Trunk"
+  17: 7 # "Curb" # Curb on the edge of roads. This does not include road boundaries if there’s no curb.
+  18: 7 # "Road" # Surface a vehicle could drive on. This include the driveway connecting // parking lot and road over a section of sidewalk.
+  19: 7 # "Lane Marker" # Marking on the road that’s specifically for defining lanes such as // single/double white/yellow lines.
+  20: 7 # "Other Ground" # Marking on the road other than lane markers, bumps, cateyes, railtracks // etc.
+  21: 9 # "Walkable" # Most horizontal surface that’s not drivable, e.g. grassy hill, // pedestrian walkway stairs etc.
+  22: 8 # "Sidewalk" # Nicely paved walkable surface when pedestrians most likely to walk on.
 
 learning_map_inv: # inverse of previous map
-  0: 0 # "Undefined"
-  1: 1 # "Car"
-  2: 2 # "Truck"
-  3: 3 # "Bus"
-  4: 4 # "Other Vehicle"
-  5: 5 # "Motorcyclist"
-  6: 6 # "Bicyclist"
-  7: 7 # "Pedestrian"
-  8: 8 # "Sign"
-  9: 9 # "Traffic Light"
-  10: 10 # "Pole"
-  11: 11 # "Construction Cone"
-  12: 12 # "Bicycle"
-  13: 13 # "Motorcycle"
-  14: 14 # "Building"
-  15: 15 # "Vegetation"
-  16: 16 # "Tree Trunk"
-  17: 17 # "Curb"
-  18: 18 # "Road"
-  19: 19 # "Lane Marker"
-  20: 20 # "Walkable"
-  21: 21 # "Sidewalk"
-  22: 22 # "Other Ground"
+  0: 0      # "unlabeled", and others ignored
+  1: 1     # "car"
+  2: 12     # "bicycle"
+  3: 13     # "motorcycle"
+  4: 4     # "other-vehicle"
+  5: 7     # "person"
+  6: 2     # "truck"
+  7: 18   # "road"
+  8: 22  # "sidewalk"
+  9: 21  # "walkable"
+  10: 15  # "vegetation"
+  11: 14  # "buliding/manmade"
 
 learning_ignore: # Ignore classes
-  0: False # "Undefined"
-  1: False # Car,
-  2: False # Truck,
-  3: False # Bus,
-  4: False # Other Vehicle
-  5: False # Motorcyclist,
-  6: False # Bicyclist,
-  7: False # Pedestrian,
-  8: False # Sign,
-  9: False # Traffic Light,
-  10: False # Pole,
-  11: False # Construction Cone,
-  12: False # Bicycle,
-  13: False # Motorcycle,
-  14: False # Building,
-  15: False # Vegetation,
-  16: False # Tree Trunk,
-  17: False # Curb,
-  18: False # Road,
-  19: False # Lane Marker,
-  20: False # Walkable,
-  21: False # Sidewalk,
-  22: False # Other Ground,
+  0: True      # "unlabeled", and others ignored
+  1: False     # "car"
+  2: False     # "bicycle"
+  3: False     # "motorcycle"
+  4: False     # "o-vehicle"
+  5: False     # "truck"
+  6: False     # "person"
+  7: False     # "drivable area"
+  8: False     # "side walk"
+  9: False     # "terrain"
+  10: False    # "vegetation"
+  11: False    # "man-made"
+
 
 split: # sequence numbers
   train: # 20 percent gt
@@ -1157,13 +1104,7 @@ split: # sequence numbers
     - '967082162553397800_5102_900_5122_900'
 
   pseudo:
-    - 'X5-MIA2662_TIC_PCAP_20210616_065116_HIL_output'
-    - 'X5-MIA2662_TIC_PCAP_20210816_182930_HIL_output'
-    - 'X5-MIA2662_TIC_PCAP_20210621_085330_HIL_output'
-    - 'X5-MIA2662_TIC_PCAP_20210816_183246_HIL_output'
-    - 'X5-MIA2662_TIC_PCAP_20210816_181912_HIL_output'
-    - 'X5-MIA2662_TIC_PCAP_20210816_183855_HIL_output'
-    - 'X5-MIA2662_TIC_PCAP_20210816_182320_HIL_output'
+    - '10359308928573410754_720_000_740_000'
 
   test:
     - 'X5-MIA2662_TIC_PCAP_20210616_065116_HIL_output'
