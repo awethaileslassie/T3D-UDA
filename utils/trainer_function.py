@@ -50,6 +50,23 @@ class Trainer(object):
         self.warmup_epoch = warmup_epoch
         self.ema_frequency = ema_frequency
 
+    def criterion(self, outputs, point_label_tensor, lcw=None, mode='GT'):
+        if self.ssl:
+            if mode == 'GT':
+                lcw_tensor = torch.FloatTensor(lcw).to(self.pytorch_device)
+            else:
+                lcw_tensor = lcw
+
+            loss = self.lovasz_softmax(torch.nn.functional.softmax(outputs), point_label_tensor,
+                                       ignore=self.ignore_label, lcw=lcw_tensor) \
+                   + self.loss_func(outputs, point_label_tensor, lcw=lcw_tensor)
+        else:
+            loss = self.lovasz_softmax(torch.nn.functional.softmax(outputs), point_label_tensor,
+                                       ignore=self.ignore_label) \
+                   + self.loss_func(outputs, point_label_tensor)
+
+        return loss
+
     # updating teacher model weights
     @torch.no_grad()
     def _update_teacher_model(self, keep_rate=0.996):
