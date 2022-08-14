@@ -322,6 +322,19 @@ class Trainer(object):
                 global_iter += 1
 
             # ----------------------------------------------------------------------#
+            # Evaluation/validation
+            with torch.no_grad():
+                # during burn in stage validate using teacher model
+                if epoch < self.warmup_epoch:
+                    # Change teacher model to evaluation mode
+                    self.teacher_model.eval()
+                    hist_list, val_loss_list = self.validate(self.teacher_model, val_dataset_loader, val_batch_size, test_loader, self.ssl)
+                else:
+                    # Change student model to evaluation mode
+                    self.student_model.eval()
+                    hist_list, val_loss_list = self.validate(self.student_model, val_dataset_loader, val_batch_size, test_loader, self.ssl)
+
+            # ----------------------------------------------------------------------#
             # Print validation mIoU and Loss
             print(f"--------------- epoch: {epoch} ----------------")
             iou = per_class_iu(sum(hist_list))
