@@ -50,6 +50,25 @@ class Trainer(object):
         self.warmup_epoch = warmup_epoch
         self.ema_frequency = ema_frequency
 
+
+    # updating teacher model weights
+    @torch.no_grad()
+    def _update_teacher_model(self, keep_rate=0.996):
+        student_model_dict = self.student_model.state_dict()
+
+        new_teacher_dict = copy.copy(self.teacher_model.state_dict())  # OrderedDict()
+        for key, value in self.teacher_model.state_dict().items():
+            if key in student_model_dict.keys():
+                new_teacher_dict[key] = (
+                        student_model_dict[key] *
+                        (1 - keep_rate) + value * keep_rate
+                )
+            # else:
+            #    print("{} is not found in student model".format(key))
+            #    #raise Exception("{} is not found in student model".format(key))
+
+        self.teacher_model.load_state_dict(new_teacher_dict)
+
     def validate(self, my_model, val_dataset_loader, val_batch_size, test_loader=None, ssl=None):
         my_model.eval()
         hist_list = []
