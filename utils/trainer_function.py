@@ -22,6 +22,12 @@ from utils.metric_util import per_class_iu, fast_hist_crop
 from utils.per_class_weight import semantic_kitti_class_weights
 import copy
 
+def yield_target_dataset_loader(n_epochs, target_train_dataset_loader):
+    for e in range(n_epochs):
+        for i_iter_train, (_, train_vox_label, train_grid, _, train_pt_fea, ref_st_idx, ref_end_idx, lcw) \
+                in enumerate(target_train_dataset_loader):
+            yield train_vox_label, train_grid, train_pt_fea, ref_st_idx, ref_end_idx, lcw
+
 class Trainer(object):
     def __init__(self, student_model, teacher_model, optimizer, ckpt_dir, unique_label, unique_label_str,
                  lovasz_softmax,
