@@ -50,3 +50,119 @@ class Trainer(object):
         self.warmup_epoch = warmup_epoch
         self.ema_frequency = ema_frequency
 
+    def validate(self, my_model, val_dataset_loader, val_batch_size, test_loader=None, ssl=None):
+        my_model.eval()
+        hist_list = []
+        val_loss_list = []
+        for i_iter_val, (
+                _, val_vox_label, val_grid, val_pt_labs, val_pt_fea, ref_st_idx, ref_end_idx, lcw) in enumerate(
+            val_dataset_loader):
+            val_pt_fea_ten = [torch.from_numpy(i).type(torch.FloatTensor).to(self.pytorch_device) for i in val_pt_fea]
+            val_grid_ten = [torch.from_numpy(i).to(self.pytorch_device) for i in val_grid]
+            val_label_tensor = val_vox_label.type(torch.LongTensor).to(self.pytorch_device)
+
+            predict_labels = my_model(val_pt_fea_ten, val_grid_ten, val_batch_size)
+            # aux_loss = loss_fun(aux_outputs, point_label_tensor)
+
+            inp = val_label_tensor.size(0)
+
+            # TODO: check if this is correctly implemented
+            # hack for batch_size mismatch with the number of training example
+            predict_labels = predict_labels[:inp, :, :, :, :]
+
+            loss = self.criterion(predict_labels, val_label_tensor, lcw)
+
+            predict_labels = torch.argmax(predict_labels, dim=1)
+            predict_labels = predict_labels.cpu().detach().numpy()
+            for count, i_val_grid in enumerate(val_grid):
+                hist_list.append(fast_hist_crop(predict_labels[
+                                                    count, val_grid[count][:, 0], val_grid[count][:, 1],
+                                                    val_grid[count][:, 2]], val_pt_labs[count],
+                                                self.unique_label))
+            val_loss_list.append(loss.detach().cpu().numpy())
+
+        return hist_list, val_loss_list
+
+    def fit(self, n_epochs, source_train_dataset_loader, train_batch_size, val_dataset_loader,
+            val_batch_size, test_loader=None,
+            ckpt_save_interval=5, lr_scheduler_each_iter=False):
+
+        global_iter = 0
+        pbar = tqdm(total=len(source_train_dataset_loader))
+
+        for epoch in range(n_epochs):
+
+            # train the model
+            loss_list = []
+            self.student_model.train()
+            # training with multi-frames and ssl:
+            for i_iter_train, (
+                    _, train_vox_label, train_grid, _, train_pt_fea, ref_st_idx, ref_end_idx, lcw) in enumerate(
+                source_train_dataset_loader):
+                # call the validation and inference with
+                train_pt_fea_ten = [torch.from_numpy(i).type(torch.FloatTensor).to(self.pytorch_device) for i in
+                                    train_pt_fea]
+                # train_grid_ten = [torch.from_numpy(i[:,:2]).to(self.pytorch_device) for i in train_grid]
+                train_vox_ten = [torch.from_numpy(i).to(self.pytorch_device) for i in train_grid]
+                point_label_tensor = train_vox_label.type(torch.LongTensor).to(self.pytorch_device)
+
+                # forward + backward + optimize
+                outputs = self.student_model(train_pt_fea_ten, train_vox_ten, train_batch_size)
+                inp = point_label_tensor.size(0)
+                # print(f"outputs.size() : {outputs.size()}")
+                # TODO: check if this is correctly implemented
+                # hack for batch_size mismatch with the number of training example
+                outputs = outputs[:inp, :, :, :, :]
+                ################################
+
+                loss = self.criterion(outputs, point_label_tensor, lcw)
+
+                # TODO: check --> to mitigate only one element tensors can be converted to Python scalars
+                # loss = loss.mean()
+                loss.backward()
+                self.optimizer.step()
+                self.optimizer.zero_grad()
+
+                # Uncomment to use the learning rate scheduler
+                # scheduler.step()
+
+                loss_list.append(loss.item())
+
+                if global_iter % 1000 == 0:
+                    if len(loss_list) > 0:
+                        print('epoch %d iter %5d, loss: %.3f\n' %
+                              (epoch, i_iter_train, np.mean(loss_list)))
+                    else:
+                        print('loss error')
+
+                global_iter += 1
+
+                if global_iter % 100 == 0:
+                    pbar.update(100)
+
+            # ----------------------------------------------------------------------#
+            # Evaluation/validation
+            hist_list = []
+            val_loss_list = []
+            with torch.no_grad():
+                self.validate(self.student_model, hist_list, val_loss_list, val_dataset_loader, val_batch_size, test_loader, self.ssl)
+
+            # ----------------------------------------------------------------------#
+            # Print validation mIoU and Loss
+            print(f"--------------- epoch: {epoch} ----------------")
+            iou = per_class_iu(sum(hist_list))
+            print('Validation per class iou: ')
+            for class_name, class_iou in zip(self.unique_label_str, iou):
+                print('%s : %.2f%%' % (class_name, class_iou * 100))
+            val_miou = np.nanmean(iou) * 100
+            # del val_vox_label, val_grid, val_pt_fea
+
+            # save model if performance is improved
+            if best_val_miou < val_miou:
+                best_val_miou = val_miou
+                torch.save(self.student_model.state_dict(), self.model_save_path)
+
+            print('Current val miou is %.3f while the best val miou is %.3f' %
+                  (val_miou, best_val_miou))
+            print('Current val loss is %.3f' %
+                  (np.mean(val_loss_list)))
