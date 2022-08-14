@@ -731,8 +731,8 @@ class WOD_multiscan(data.Dataset):
                     newpath.replace('lidar', f"predictions_f{self.T_past}_{self.T_future}")[
                     :-3] + 'npy').reshape((-1, 1))
             else:
-                # print(self.im_idx[index].replace('lidar', 'labels_v3_2')[:-3] + 'npy')
-                annotated_data = np.load(newpath.replace('lidar', 'labels_v3_2')[:-3] + 'npy',
+                # print(self.im_idx[index].replace('lidar', 'labels')[:-3] + 'npy')
+                annotated_data = np.load(newpath.replace('lidar', 'labels')[:-3] + 'npy',
                                          allow_pickle=True)
                 if annotated_data.shape[1] == 2:
                     annotated_data = annotated_data[:, 1].reshape((-1, 1))

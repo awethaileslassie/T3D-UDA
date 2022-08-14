@@ -13,7 +13,7 @@ model_params:
 
   fea_dim: 9
   out_fea_dim: 256
-  num_class: 23
+  num_class: 8
   num_input_features: 16
   use_norm: True
   init_size: 32
@@ -26,7 +26,7 @@ dataset_params:
   ignore_label: 0 # undefined
   return_test: False
   fixed_volume_space: True
-  label_mapping: "./configs/label_mapping/wod/wod-multiscan_labelled.yaml"
+  label_mapping: "./configs/label_mapping/da_kitti_synt4d/synthetic.yaml"
   max_volume_space:
     - 100 #50
     - 3.1415926
@@ -39,52 +39,51 @@ dataset_params:
 ###################
 ## Data_loader options
 train_data_loader:
-  data_path: "/mnt/beegfs/gpu/argoverse-tracking-all-training/WOD/processed/Labeled/training"
+  data_path: "/home/gebreawe/Curb_data/processed" #"/mnt/beegfs/gpu/argoverse-tracking-all-training/Synth4D/nuscenes_synth"
   imageset: "train"
   return_ref: True
-  batch_size: 3 #4
+  batch_size: 8 #4
   shuffle: True
   num_workers: 0
 
 val_data_loader:
-  data_path: "/mnt/beegfs/gpu/argoverse-tracking-all-training/WOD/processed/Labeled/validation"
+  data_path: "/home/gebreawe/Curb_data/processed" #"/mnt/beegfs/gpu/argoverse-tracking-all-training/Synth4D/nuscenes_synth"
   imageset: "val"
   return_ref: True
-  batch_size: 3
+  batch_size: 8
   shuffle: False
   num_workers: 0
 
 test_data_loader:
-  data_path: "/mnt/beegfs/gpu/argoverse-tracking-all-training/Valeo/Curb_segmentation/processed"
+  data_path: "/home/gebreawe/Curb_data/processed" #"/mnt/beegfs/gpu/argoverse-tracking-all-training/Synth4D/kitti_synth"
   imageset: "test"
   return_ref: True
-  batch_size: 4
+  batch_size: 8
   shuffle: False
   num_workers: 4
 
 ssl_data_loader:
-  data_path: "/mnt/beegfs/gpu/argoverse-tracking-all-training/Valeo/Curb_segmentation/processed"
+  data_path: "/home/gebreawe/Curb_data/processed" #"/mnt/beegfs/gpu/argoverse-tracking-all-training/Synth4D/kitti_synth"
   imageset: "pseudo"
   return_ref: True
-  batch_size: 4
+  batch_size: 8
   shuffle: False
   num_workers: 4
-
 
 ###################
 ## test params
 train_params:
-  model_load_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST-UDA/model_save_dir/wod_save_f0_0_intensity.pt"
-  model_save_path: "/home/gebreawe/Model_checkpoint/Segmentation/ST-UDA/model_save_dir/wod_save_f0_0_intensity.pt"
+  model_load_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/synth4dsynth_f1_1_time.pt"
+  model_save_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/synth4dsynth_f1_1_time.pt"
   checkpoint_every_n_steps: 1000
   max_num_epochs: 40
   eval_every_n_steps: 1000
   learning_rate: 0.001
-  past: 0
-  future: 0
-  T_past: '0_64_time'
-  T_future: '0_64_time'
-  ssl: False
+  past: 1
+  future: 1
+  T_past: '332'
+  T_future: '332'
+  ssl: True
   rgb: False
   uda: False
-  time: False
+  time: True

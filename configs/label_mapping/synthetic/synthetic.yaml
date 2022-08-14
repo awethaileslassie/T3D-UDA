@@ -63,8 +63,7 @@ learning_map_inv: # inverse of previous map
   7: 9
 
 learning_ignore: # Ignore classes
-  -1: True      # "unlabeled", and others ignored
-  0: False
+  0: True  # "unlabeled", and others ignored
   1: False
   2: False
   3: False
@@ -72,3 +71,23 @@ learning_ignore: # Ignore classes
   5: False
   6: False
 
+split: # sequence numbers
+  train: # 20 percent gt
+#  - 'Town06'
+  - 'Town07'
+#  - 'Town10HD'
+
+  valid: #
+#  - 'Town06'
+#  - 'Town07'
+  - 'Town10HD'
+
+  pseudo: #
+#  - 'Town06'
+#  - 'Town07'
+  - 'Town10HD'
+
+  test: #
+#  - 'Town06'
+  - 'Town07'
+#  - 'Town10HD'
