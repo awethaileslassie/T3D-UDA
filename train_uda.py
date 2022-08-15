@@ -179,8 +179,8 @@ def main(args):
                       ssl=ssl,
                       eval_frequency=1,
                       pytorch_device=pytorch_device,
-                      warmup_epoch=1,
-                      ema_frequency=1)
+                      warmup_epoch=5,
+                      ema_frequency=2)
 
     # train and val model
     trainer.uda_fit(train_hypers["max_num_epochs"],
@@ -201,162 +201,11 @@ def main(args):
     #             ckpt_save_interval=5,
     #             lr_scheduler_each_iter=False)
 
-    # while epoch < train_hypers['max_num_epochs']:
-    #     print(f"epoch: {epoch}")
-    #     loss_list = []
-    #     pbar = tqdm(total=len(train_dataset_loader))
-    #     time.sleep(15)
-    #
-    #     # lr_scheduler.step(epoch)
-    #
-    #     def validating(hist_list, val_loss_list, val_vox_label, val_grid, val_pt_labs, val_pt_fea, ref_st_idx=None,
-    #                    ref_end_idx=None, lcw=None):
-    #
-    #         val_pt_fea_ten = [torch.from_numpy(i).type(torch.FloatTensor).to(pytorch_device) for i in val_pt_fea]
-    #         val_grid_ten = [torch.from_numpy(i).to(pytorch_device) for i in val_grid]
-    #         val_label_tensor = val_vox_label.type(torch.LongTensor).to(pytorch_device)
-    #
-    #         predict_labels = student_model(val_pt_fea_ten, val_grid_ten, val_batch_size)
-    #         # aux_loss = loss_fun(aux_outputs, point_label_tensor)
-    #
-    #         inp = val_label_tensor.size(0)
-    #
-    #         # TODO: check if this is correctly implemented
-    #         # hack for batch_size mismatch with the number of training example
-    #         predict_labels = predict_labels[:inp, :, :, :, :]
-    #
-    #         if ssl:
-    #             lcw_tensor = torch.FloatTensor(lcw).to(pytorch_device)
-    #             loss = lovasz_softmax(torch.nn.functional.softmax(predict_labels).detach(), val_label_tensor,
-    #                                   lcw=lcw_tensor) + loss_func(predict_labels.detach(),
-    #                                                               val_label_tensor, lcw=lcw_tensor)
-    #         else:
-    #             loss = lovasz_softmax(torch.nn.functional.softmax(predict_labels).detach(),
-    #                                   val_label_tensor) + loss_func(predict_labels.detach(), val_label_tensor)
-    #
-    #         predict_labels = torch.argmax(predict_labels, dim=1)
-    #         predict_labels = predict_labels.cpu().detach().numpy()
-    #         for count, i_val_grid in enumerate(val_grid):
-    #             hist_list.append(fast_hist_crop(predict_labels[
-    #                                                 count, val_grid[count][:, 0], val_grid[count][:, 1],
-    #                                                 val_grid[count][:, 2]], val_pt_labs[count],
-    #                                             unique_label))
-    #         val_loss_list.append(loss.detach().cpu().numpy())
-    #
-    #         return hist_list, val_loss_list
-    #
-    #     # if global_iter % check_iter == 0 and epoch >= 1:
-    #     if epoch >= 1:
-    #         student_model.eval()
-    #         hist_list = []
-    #         val_loss_list = []
-    #         with torch.no_grad():
-    #             student_model.eval()
-    #
-    #             # Validation with multi-frames and ssl:
-    #             # if past_frame > 0 and train_hypers['ssl']:
-    #             for i_iter_val, (
-    #                     _, vox_label, grid, pt_labs, pt_fea, ref_st_idx, ref_end_idx, val_lcw) in enumerate(
-    #                 val_dataset_loader):
-    #                 # call the validation and inference with
-    #                 hist_list, val_loss_list = validating(hist_list, val_loss_list, vox_label, grid, pt_labs,
-    #                                                       pt_fea, ref_st_idx=ref_st_idx,
-    #                                                       ref_end_idx=ref_end_idx,
-    #                                                       lcw=val_lcw)
-    #
-    #             print(f"--------------- epoch: {epoch} ----------------")
-    #
-    #             iou = per_class_iu(sum(hist_list))
-    #             print('Validation per class iou: ')
-    #             for class_name, class_iou in zip(unique_label_str, iou):
-    #                 print('%s : %.2f%%' % (class_name, class_iou * 100))
-    #             val_miou = np.nanmean(iou) * 100
-    #             # del val_vox_label, val_grid, val_pt_fea
-    #
-    #             # save model if performance is improved
-    #             if best_val_miou < val_miou:
-    #                 best_val_miou = val_miou
-    #                 torch.save(student_model.state_dict(), model_save_path)
-    #
-    #             print('Current val miou is %.3f while the best val miou is %.3f' %
-    #                   (val_miou, best_val_miou))
-    #             print('Current val loss is %.3f' %
-    #                   (np.mean(val_loss_list)))
-    #
-    #     def training(i_iter_train, train_vox_label, train_grid, pt_labels, train_pt_fea, ref_st_idx=None,
-    #                  ref_end_idx=None, lcw=None):
-    #         global global_iter, best_val_miou, epoch
-    #
-    #         train_pt_fea_ten = [torch.from_numpy(i).type(torch.FloatTensor).to(pytorch_device) for i in train_pt_fea]
-    #         # train_grid_ten = [torch.from_numpy(i[:,:2]).to(pytorch_device) for i in train_grid]
-    #         train_vox_ten = [torch.from_numpy(i).to(pytorch_device) for i in train_grid]
-    #         point_label_tensor = train_vox_label.type(torch.LongTensor).to(pytorch_device)
-    #
-    #         # forward + backward + optimize
-    #         outputs = student_model(train_pt_fea_ten, train_vox_ten, train_batch_size)
-    #         inp = point_label_tensor.size(0)
-    #         # print(f"outputs.size() : {outputs.size()}")
-    #         # TODO: check if this is correctly implemented
-    #         # hack for batch_size mismatch with the number of training example
-    #         outputs = outputs[:inp, :, :, :, :]
-    #         ################################
-    #
-    #         if ssl:
-    #             lcw_tensor = torch.FloatTensor(lcw).to(pytorch_device)
-    #             loss = lovasz_softmax(torch.nn.functional.softmax(outputs), point_label_tensor, ignore=ignore_label,
-    #                                   lcw=lcw_tensor) + loss_func(
-    #                 outputs, point_label_tensor, lcw=lcw_tensor)
-    #         else:
-    #             loss = lovasz_softmax(torch.nn.functional.softmax(outputs), point_label_tensor,
-    #                                   ignore=ignore_label) + loss_func(
-    #                 outputs, point_label_tensor)
-    #
-    #         # TODO: check --> to mitigate only one element tensors can be converted to Python scalars
-    #         # loss = loss.mean()
-    #         loss.backward()
-    #         optimizer.step()
-    #         optimizer.zero_grad()
-    #
-    #         # Uncomment to use the learning rate scheduler
-    #         # scheduler.step()
-    #
-    #         loss_list.append(loss.item())
-    #
-    #         if global_iter % 1000 == 0:
-    #             if len(loss_list) > 0:
-    #                 print('epoch %d iter %5d, loss: %.3f\n' %
-    #                       (epoch, i_iter_train, np.mean(loss_list)))
-    #             else:
-    #                 print('loss error')
-    #
-    #         global_iter += 1
-    #
-    #         if global_iter % 100 == 0:
-    #             pbar.update(100)
-    #
-    #         if global_iter % check_iter == 0:
-    #             if len(loss_list) > 0:
-    #                 print('epoch %d iter %5d, loss: %.3f\n' %
-    #                       (epoch, i_iter_train, np.mean(loss_list)))
-    #             else:
-    #                 print('loss error')
-    #
-    #     student_model.train()
-    #     # training with multi-frames and ssl:
-    #     for i_iter_train, (_, vox_label, grid, pt_labs, pt_fea, ref_st_idx, ref_end_idx, lcw) in enumerate(
-    #             train_dataset_loader):
-    #         # call the validation and inference with
-    #         training(i_iter_train, vox_label, grid, pt_labs, pt_fea, ref_st_idx=ref_st_idx, ref_end_idx=ref_end_idx,
-    #                  lcw=lcw)
-    #
-    #     pbar.close()
-    #     epoch += 1
-
-
 if __name__ == '__main__':
     # Training settings
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-y', '--config_path', default='configs/data_config/synthetic/synth4dsynth_f3_3_time.yaml')
+    parser.add_argument('-y', '--config_path', default='configs/data_config/da_kitti_poss/uda_poss_kitti_f2_2_time.yaml')
+    # parser.add_argument('-y', '--config_path', default='configs/data_config/da_kitti_usl/uda_usl_kitti_f2_2_time.yaml')
     # parser.add_argument('-y', '--config_path', default='configs/data_config/semantickitti/semantickitti_f3_3_s10.yaml')
     parser.add_argument('-g', '--mgpus', action='store_true', default=False)
     parser.add_argument("--local_rank", default=0, type=int)
