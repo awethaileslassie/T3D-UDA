@@ -230,13 +230,13 @@ class Trainer(object):
                 target_train_dataset_loader, target_train_batch_size, val_dataset_loader,
                 val_batch_size, test_loader=None, ckpt_save_interval=5, lr_scheduler_each_iter=False):
 
-        global_iter = 1
-        pbar = tqdm(total=len(source_train_dataset_loader))
 
+        # call the target data generator function
         target_data_generator = yield_target_dataset_loader(n_epochs, target_train_dataset_loader)
         best_val_miou = 0
         for epoch in range(n_epochs):
-
+            global_iter = 1
+            pbar = tqdm(total=len(source_train_dataset_loader))
             # train the model
             loss_list = []
             self.student_model.train()
@@ -301,6 +301,7 @@ class Trainer(object):
 
                 # TODO: check --> to mitigate only one element tensors can be converted to Python scalars
                 # loss = loss.mean()
+                # print(loss)
                 loss.backward()
                 self.optimizer.step()
                 self.optimizer.zero_grad()
