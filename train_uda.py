@@ -152,11 +152,12 @@ def main(args):
         grid_size=grid_size,
         train_hypers=train_hypers)
 
-    optimizer = optim.Adam(student_model.parameters(), lr=train_hypers["learning_rate"])
+    optimizer_teacher = optim.Adam(teacher_model.parameters(), lr=train_hypers["learning_rate"])
+    optimizer_student = optim.Adam(student_model.parameters(), lr=train_hypers["learning_rate"])
 
-    scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=0.01,
-                                                    steps_per_epoch=len(source_train_dataset_loader),
-                                                    epochs=train_hypers["max_num_epochs"])
+    # scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer_student, max_lr=0.01,
+    #                                                 steps_per_epoch=len(source_train_dataset_loader),
+    #                                                 epochs=train_hypers["max_num_epochs"])
 
     # global_iter = 0
     check_iter = train_hypers['eval_every_n_steps']
@@ -168,7 +169,8 @@ def main(args):
     # Define training mode and function
     trainer = Trainer(student_model=student_model,
                       teacher_model=teacher_model,
-                      optimizer=optimizer,
+                      optimizer_teacher=optimizer_teacher,
+                      optimizer_student=optimizer_student,
                       ckpt_dir=model_save_path,
                       unique_label=unique_label,
                       unique_label_str=unique_label_str,
@@ -204,8 +206,8 @@ def main(args):
 if __name__ == '__main__':
     # Training settings
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-y', '--config_path', default='configs/data_config/da_kitti_poss/uda_poss_kitti_f2_2_time.yaml')
-    # parser.add_argument('-y', '--config_path', default='configs/data_config/da_kitti_usl/uda_usl_kitti_f2_2_time.yaml')
+    # parser.add_argument('-y', '--config_path', default='configs/data_config/da_kitti_poss/uda_poss_kitti_f2_2_time.yaml')
+    parser.add_argument('-y', '--config_path', default='configs/data_config/da_kitti_usl/uda_usl_kitti_f2_2_time.yaml')
     # parser.add_argument('-y', '--config_path', default='configs/data_config/semantickitti/semantickitti_f3_3_s10.yaml')
     parser.add_argument('-g', '--mgpus', action='store_true', default=False)
     parser.add_argument("--local_rank", default=0, type=int)

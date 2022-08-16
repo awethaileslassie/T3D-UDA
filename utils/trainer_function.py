@@ -29,14 +29,21 @@ def yield_target_dataset_loader(n_epochs, target_train_dataset_loader):
             yield train_vox_label, train_grid, train_pt_fea, ref_st_idx, ref_end_idx, lcw
 
 class Trainer(object):
-    def __init__(self, student_model, teacher_model, optimizer, ckpt_dir, unique_label, unique_label_str,
+    def __init__(self, student_model,
+                 teacher_model,
+                 optimizer_teacher,
+                 optimizer_student,
+                 ckpt_dir,
+                 unique_label,
+                 unique_label_str,
                  lovasz_softmax,
                  loss_func,
                  ignore_label, train_mode=None, ssl=None, eval_frequency=1, pytorch_device=0, warmup_epoch=1,
                  ema_frequency=5):
         self.student_model = student_model
         self.teacher_model = teacher_model
-        self.optimizer = optimizer
+        self.optimizer_teacher = optimizer_teacher
+        self.optimizer_student = optimizer_student
         self.model_save_path = ckpt_dir
         self.unique_label = unique_label
         self.unique_label_str = unique_label_str
@@ -57,6 +64,11 @@ class Trainer(object):
             else:
                 lcw_tensor = lcw
 
+            loss = self.lovasz_softmax(torch.nn.functional.softmax(outputs), point_label_tensor,
+                                       ignore=self.ignore_label, lcw=lcw_tensor) \
+                   + self.loss_func(outputs, point_label_tensor, lcw=lcw_tensor)
+        elif mode == 'Infered':
+            lcw_tensor = lcw
             loss = self.lovasz_softmax(torch.nn.functional.softmax(outputs), point_label_tensor,
                                        ignore=self.ignore_label, lcw=lcw_tensor) \
                    + self.loss_func(outputs, point_label_tensor, lcw=lcw_tensor)
@@ -129,7 +141,7 @@ class Trainer(object):
 
             # train the model
             loss_list = []
-            self.student_model.train()
+            self.teacher_model.train()
             # training with multi-frames and ssl:
             for i_iter_train, (
                     _, train_vox_label, train_grid, _, train_pt_fea, ref_st_idx, ref_end_idx, lcw) in enumerate(
@@ -142,7 +154,7 @@ class Trainer(object):
                 point_label_tensor = train_vox_label.type(torch.LongTensor).to(self.pytorch_device)
 
                 # forward + backward + optimize
-                outputs = self.student_model(train_pt_fea_ten, train_vox_ten, train_batch_size)
+                outputs = self.teacher_model(train_pt_fea_ten, train_vox_ten, train_batch_size)
                 inp = point_label_tensor.size(0)
                 # print(f"outputs.size() : {outputs.size()}")
                 # TODO: check if this is correctly implemented
@@ -180,7 +192,7 @@ class Trainer(object):
             hist_list = []
             val_loss_list = []
             with torch.no_grad():
-                self.validate(self.student_model, hist_list, val_loss_list, val_dataset_loader, val_batch_size, test_loader, self.ssl)
+                self.validate(self.student_model, val_dataset_loader, val_batch_size, test_loader, self.ssl)
 
             # ----------------------------------------------------------------------#
             # Print validation mIoU and Loss
@@ -239,7 +251,6 @@ class Trainer(object):
             pbar = tqdm(total=len(source_train_dataset_loader))
             # train the model
             loss_list = []
-            self.student_model.train()
             # training with multi-frames and ssl:
             for i_iter_train, (
                     _, source_train_vox_label, source_train_grid, _, source_train_pt_fea, source_ref_st_idx,
@@ -255,6 +266,16 @@ class Trainer(object):
                                                                             source_train_batch_size, mode='Train')
 
                     loss = self.criterion(source_output, source_point_label_tensor, source_lcw)
+
+                    # TODO: check --> to mitigate only one element tensors can be converted to Python scalars
+                    # loss = loss.mean()
+                    # print(loss)
+                    loss.backward()
+                    self.optimizer_teacher.step()
+                    self.optimizer_teacher.zero_grad()
+                    # Uncomment to use the learning rate scheduler
+                    # scheduler.step()
+                    loss_list.append(loss.item())
 
                 ################################
                 # T-UDA: Student - Teacher mutual learning
@@ -275,16 +296,20 @@ class Trainer(object):
                         target_data_generator)
 
                     # Student forward pass on Target data
-                    target_output, target_point_label_tensor = self.forward(self.student_model, target_train_vox_label,
-                                                                            target_train_grid, target_train_pt_fea,
-                                                                            target_train_batch_size, mode='Train')
+                    target_output, target_point_label_tensor = self.forward(self.student_model,
+                                                                            target_train_vox_label,
+                                                                            target_train_grid,
+                                                                            target_train_pt_fea,
+                                                                            target_train_batch_size,
+                                                                            mode='Train')
 
                     # --- Pseudo Labeling--------#
                     # Teacher inference/forward pass on target data for Pseudo Labeling
                     self.teacher_model.eval()
                     target_prediction, target_point_label_tensor = self.forward(self.teacher_model,
                                                                                 target_train_vox_label,
-                                                                                target_train_grid, target_train_pt_fea,
+                                                                                target_train_grid,
+                                                                                target_train_pt_fea,
                                                                                 target_train_batch_size,
                                                                                 mode='Pseudo_Labeling')
                     # pseudo label generated by teacher model
@@ -299,15 +324,15 @@ class Trainer(object):
                     loss = self.criterion(source_output, source_point_label_tensor, source_lcw) \
                            + self.criterion(target_output, pseudo_label, pseudo_labels_prob_lcw, 'Infered')
 
-                # TODO: check --> to mitigate only one element tensors can be converted to Python scalars
-                # loss = loss.mean()
-                # print(loss)
-                loss.backward()
-                self.optimizer.step()
-                self.optimizer.zero_grad()
-                # Uncomment to use the learning rate scheduler
-                # scheduler.step()
-                loss_list.append(loss.item())
+                    # TODO: check --> to mitigate only one element tensors can be converted to Python scalars
+                    # loss = loss.mean()
+                    # print(loss)
+                    loss.backward()
+                    self.optimizer_student.step()
+                    self.optimizer_student.zero_grad()
+                    # Uncomment to use the learning rate scheduler
+                    # scheduler.step()
+                    loss_list.append(loss.item())
 
                 # -------EMA ----------------#
                 # EMA: Student ---> Teacher
