@@ -279,6 +279,7 @@ def fuse_multiscan(ref_raw_data, ref_annotated_data, ref_lcw, transformed_data,
 
 
 def get_combined_data(raw_data, annotated_data, lcw, learning_map, return_ref, origin_len, preceding_frame_len, ssl):
+    #print(np.unique(annotated_data))
     annotated_data = np.vectorize(learning_map.__getitem__)(annotated_data)
 
     data_tuple = (raw_data[:, :3], annotated_data.astype(np.uint8))
@@ -442,7 +443,7 @@ class SemKITTI_sk_multiscan(data.Dataset):
         if self.UDA:
             raw_data[:, 2] += 2.0  # elevate the point cloud two meters up to align with WOD
 
-        if self.imageset == 'test':
+        if self.imageset == 'test' or self.imageset == 'pseudo':
             annotated_data = np.expand_dims(np.zeros_like(raw_data[:, 0], dtype=int), axis=1)
         else:
             if self.ssl and exists(newpath.replace('velodyne', f"predictions_f{self.T_past}_{self.T_future}")[:-3]
@@ -454,6 +455,8 @@ class SemKITTI_sk_multiscan(data.Dataset):
                 annotated_data = np.fromfile(newpath.replace('velodyne', 'labels')[:-3] + 'label',
                                              dtype=np.int32).reshape((-1, 1))
             annotated_data = annotated_data & 0xFFFF  # delete high 16 digits binary
+            # if np.sum(np.unique(annotated_data == 18)) > 0:
+            #     print(newpath)
 
             if self.ssl and exists(newpath.replace('velodyne', f"probability_f{self.T_past}_{self.T_future}")[
                                    :-3] + 'label'):
@@ -517,12 +520,13 @@ class SemKITTI_sk_multiscan(data.Dataset):
         number_idx = int(self.im_idx[index][-10:-4])
         # dir_idx = int(self.im_idx[index][-22:-20])
         dir_idx = self.im_idx[index].split('/')[-3]
-        pose0 = self.poses[dir_idx][number_idx]
 
         # past scan
         past_frame_len = 0
         # TODO: added the future frame availability check
         if self.past and ((number_idx - self.past) >= 0) and ((number_idx + self.past) < len(self.poses[dir_idx])):
+            # extract the poss of the reference frame
+            pose0 = self.poses[dir_idx][number_idx]
             for fuse_idx in range(self.past):
                 # TODO: past frames
                 frame_ind = fuse_idx + 1
@@ -546,7 +550,8 @@ class SemKITTI_sk_multiscan(data.Dataset):
         # TODO: added the future frame availability check
         if self.future and ((number_idx - self.future) >= 0) and (
                 (number_idx + self.future) < len(self.poses[dir_idx])):
-
+            # extract the poss of the reference frame
+            pose0 = self.poses[dir_idx][number_idx]
             for fuse_idx in range(self.future):
                 # TODO: future frame
                 frame_ind = fuse_idx + 1
@@ -721,7 +726,7 @@ class WOD_multiscan(data.Dataset):
             # raw_data[:,4] = gray_mask * 1
         lcw = None
         origin_len = len(raw_data)
-        if self.imageset == 'test':
+        if self.imageset == 'test' or self.imageset == 'pseudo':
             annotated_data = np.expand_dims(np.zeros_like(raw_data[:, 0]), axis=1).reshape((-1, 1))
         else:
             # x = self.im_idx[index].replace('lidar', f"predictions_f{self.T_past}_{self.T_future}")[:-3] + 'label'
@@ -762,13 +767,13 @@ class WOD_multiscan(data.Dataset):
         number_idx = int(self.im_idx[index][-10:-4])
         # dir_idx = int(self.im_idx[index][-22:-20])
         dir_idx = self.im_idx[index].split('/')[-3]
-        if self.past or self.future:
-            pose0 = self.poses[dir_idx][number_idx]
 
         # past scan
         past_frame_len = 0
         # TODO: added the future frame availability check
         if self.past and ((number_idx - self.past) >= 0) and ((number_idx + self.past) < len(self.poses[dir_idx])):
+            # extract the poss of the reference frame
+            pose0 = self.poses[dir_idx][number_idx]
             for fuse_idx in range(self.past):
                 # TODO: past frames
                 frame_ind = fuse_idx + 1
@@ -792,7 +797,8 @@ class WOD_multiscan(data.Dataset):
         # TODO: added the future frame availability check
         if self.future and ((number_idx - self.future) >= 0) and (
                 (number_idx + self.future) < len(self.poses[dir_idx])):
-
+            # extract the poss of the reference frame
+            pose0 = self.poses[dir_idx][number_idx]
             for fuse_idx in range(self.future):
                 # TODO: future frame
                 frame_ind = fuse_idx + 1
