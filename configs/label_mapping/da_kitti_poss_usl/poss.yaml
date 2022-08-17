@@ -1,0 +1,125 @@
+# This file is covered by the LICENSE file in the root of this project.
+labels:
+  0: "unlabeled"
+  1: "noise 5"
+  4: "1 person"
+  5: "2+ person"
+  6: "rider"
+  7: "car"
+  8: "trunk"
+  9: "plants"
+  10: "traffic sign 1" # standing sign
+  11: "traffic sign 2" # hanging sign
+  12: "traffic sign 3" # high/big hanging sign
+  13: "pole"
+  14: "trashcan"
+  15: "building"
+  16: "cone/stone"
+  17: "fence"
+  18: "noise2"
+  19: "noise3"
+  20: "noise4"
+  21: "bike"
+  22: "ground" # class definition
+
+color_map: # bgr
+  0: [0, 0, 0] # 0: "unlabeled"
+  4: [30, 30, 255] # 4: "1 person"
+  5: [30, 30, 255] # 5: "2+ person"
+  6: [200, 40, 255] # 6: "rider"
+  7: [245, 150, 100] # 7: "car"
+  8: [0, 60, 135] # 8: "trunk"
+  9: [0, 175, 0] # 9: "plants"
+  10: [255, 0, 0] # 10: "traffic sign 1"
+  11: [255, 0, 0] # 11: "traffic sign 2"
+  12: [255, 0, 0] # 12: "traffic sign 3"
+  13: [255, 240, 150] # 13: "pole"
+  14: [125, 255, 0] # 14: "trashcan"
+  15: [0, 200, 255] # 15: "building"
+  16: [50, 255, 255] # 16: "cone/stone"
+  17: [50, 120, 255] # 17: "fence"
+  18: [0, 12, 25] # 18: "noise"
+  21: [100, 230, 245] # 21: "bike"
+  22: [255, 0, 255] # 22: "ground"
+
+# classes that are indistinguishable from single scan or inconsistent in
+# ground truth are mapped to their closest equivalent
+learning_map:
+  0: 0 #"unlabeled"
+  1: 0 #"unlabeled"
+  4: 1 #"1 person"
+  5: 1 #"2+ person"
+  6: 2 #"rider"
+  7: 3 #"car"
+  8: 4 #"trunk"
+  9: 5 #"plants"
+  10: 6 #"traffic sign 1"  # standing sign
+  11: 6 #"traffic sign 2" # hanging sign
+  12: 6 #"traffic sign 3" # high/big hanging sign
+  13: 7 #"pole"
+  14: 8 #"trashcan" other objects
+  15: 9 #"building"
+  16: 8 #"cone/stone" other objects
+  17: 10 #"fence"
+  18: 0 #"noise" / ignored
+  19: 0 #"noise" / ignored
+  20: 0 #"noise" / ignored
+  21: 11 #"bike"
+  22: 12 #"ground" # class definition
+
+learning_map_inv: # inverse of previous map
+  0: 0 # "unlabeled", and others ignored
+  1: 4 #"1 person"#"2+ person"
+  2: 6 #"rider"
+  3: 7 #"car"
+  4: 8 # "trunk"
+  5: 9 #"plants"
+  6: 10 #"traffic sign 1"  # standing sign #"traffic sign 2" # hanging sign #"traffic sign 3" # high/big hanging sign
+  7: 13 #"pole"
+  8: 14 #"trashcan" other objects #"cone/stone" other objects
+  9: 15 #"building"
+  10: 17 #"fence"
+  11: 21 #"bike"
+  12: 22 #"ground" # class definition
+
+learning_ignore: # Ignore classes
+  0: True # "unlabeled", and others ignored
+  1: False # "person"
+  2: False # "bicyclist" / rider
+  3: False # "car"
+  4: False # "trunk"
+  5: False # "vegetation"
+  6: False # "traffic-sign"
+  7: False # "pole"
+  8: False # "other-object" to "unlabeled"
+  9: False # "building"
+  10: False # "fence"
+  11: False # "bicycle" /bike
+  12: False # "road"
+  
+split: # sequence numbers
+  train:
+    - '00'
+    - '01'
+    - '03'
+    - '04'
+    - '05'
+
+  valid:
+    - '02'
+
+  pseudo:
+    - '00'
+    - '01'
+    - '02'
+    - '03'
+    - '04'
+    - '05'
+    - '06'
+    - '07'
+    - '09'
+    - '10'
+
+  test: #
+    - '02'
+
