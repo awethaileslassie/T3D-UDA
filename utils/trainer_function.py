@@ -67,15 +67,15 @@ class Trainer(object):
             loss = self.lovasz_softmax(torch.nn.functional.softmax(outputs), point_label_tensor,
                                        ignore=self.ignore_label, lcw=lcw_tensor) \
                    + self.loss_func(outputs, point_label_tensor, lcw=lcw_tensor)
-        elif mode == 'Infered':
-            lcw_tensor = lcw
-            loss = self.lovasz_softmax(torch.nn.functional.softmax(outputs), point_label_tensor,
-                                       ignore=self.ignore_label, lcw=lcw_tensor) \
-                   + self.loss_func(outputs, point_label_tensor, lcw=lcw_tensor)
         else:
             loss = self.lovasz_softmax(torch.nn.functional.softmax(outputs), point_label_tensor,
                                        ignore=self.ignore_label) \
                    + self.loss_func(outputs, point_label_tensor)
+        # elif mode == 'Infered':
+        #     lcw_tensor = lcw
+        #     loss = self.lovasz_softmax(torch.nn.functional.softmax(outputs), point_label_tensor,
+        #                                ignore=self.ignore_label, lcw=lcw_tensor) \
+        #            + self.loss_func(outputs, point_label_tensor, lcw=lcw_tensor)
 
         return loss
 

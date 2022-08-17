@@ -1,0 +1,24 @@
+train_uda.py --config_path configs/data_config/da_kitti_usl/uda_kitti_usl_f3_3_time.yaml
+Namespace(config_path='configs/data_config/da_kitti_usl/uda_kitti_usl_f3_3_time.yaml', mgpus=False, local_rank=0)
+distributed: False
+[480 360  32]
+[480 360  32]
+|-------------------------Training started-----------------------------------------|
+focal_loss:False, weighted_cross_entropy: False
+  0%|          | 0/4783 [00:00<?, ?it/s]  2%|▏         | 100/4783 [06:24<5:00:01,  3.84s/it]  4%|▍         | 200/4783 [12:08<4:35:33,  3.61s/it]epoch 0 iter    99, loss: 4.225
+
+epoch 0 iter   199, loss: 4.226
+
+Traceback (most recent call last):
+  File "/home/gebreawe/Code/Segmentation/T-UDA/train_uda.py", line 367, in <module>
+    main(args)
+  File "/home/gebreawe/Code/Segmentation/T-UDA/train_uda.py", line 186, in main
+    trainer.uda_fit(train_hypers["max_num_epochs"],
+  File "/home/gebreawe/Code/Segmentation/T-UDA/utils/trainer_function.py", line 304, in uda_fit
+    loss.backward()
+  File "/mnt/appl/software/PyTorch/1.10.0-foss-2021a-CUDA-11.3.1/lib/python3.9/site-packages/torch/_tensor.py", line 307, in backward
+    torch.autograd.backward(self, gradient, retain_graph, create_graph, inputs=inputs)
+  File "/mnt/appl/software/PyTorch/1.10.0-foss-2021a-CUDA-11.3.1/lib/python3.9/site-packages/torch/autograd/__init__.py", line 154, in backward
+    Variable._execution_engine.run_backward(
+RuntimeError: CUDA out of memory. Tried to allocate 1.90 GiB (GPU 0; 39.41 GiB total capacity; 31.45 GiB already allocated; 1.50 GiB free; 36.59 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF
+  4%|▍         | 200/4783 [17:05<6:31:29,  5.13s/it]

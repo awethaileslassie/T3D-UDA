@@ -179,9 +179,9 @@ def main(args):
                       ignore_label=ignore_label,
                       train_mode="ema",
                       ssl=ssl,
-                      eval_frequency=1,
+                      eval_frequency=5,
                       pytorch_device=pytorch_device,
-                      warmup_epoch=5,
+                      warmup_epoch=1,
                       ema_frequency=2)
 
     # train and val model

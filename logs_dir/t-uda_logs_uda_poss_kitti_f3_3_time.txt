@@ -1,0 +1,82 @@
+/mnt/appl/software/PyTorch/1.10.0-foss-2021a-CUDA-11.3.1/lib/python3.9/site-packages/torch/distributed/launch.py:178: FutureWarning: The module torch.distributed.launch is deprecated
+and will be removed in future. Use torchrun.
+Note that --use_env is set by default in torchrun.
+If your script expects `--local_rank` argument to be set, please
+change it to read from `os.environ['LOCAL_RANK']` instead. See 
+https://pytorch.org/docs/stable/distributed.html#launch-utility for 
+further instructions
+
+  warnings.warn(
+WARNING:torch.distributed.run:
+*****************************************
+Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+*****************************************
+train_uda.py --local_rank=1 --config_path configs/data_config/da_poss_kitti/uda_poss_kitti_f2_2_time.yaml
+Namespace(config_path='configs/data_config/da_poss_kitti/uda_poss_kitti_f2_2_time.yaml', mgpus=False, local_rank=1)
+distributed: True
+train_uda.py --local_rank=0 --config_path configs/data_config/da_poss_kitti/uda_poss_kitti_f2_2_time.yaml
+Namespace(config_path='configs/data_config/da_poss_kitti/uda_poss_kitti_f2_2_time.yaml', mgpus=False, local_rank=0)
+distributed: True
+Traceback (most recent call last):
+  File "/home/gebreawe/Code/Segmentation/T-UDA/train_uda.py", line 367, in <module>
+    main(args)
+  File "/home/gebreawe/Code/Segmentation/T-UDA/train_uda.py", line 64, in main
+    configs = load_config_data(config_path)
+  File "/home/gebreawe/Code/Segmentation/T-UDA/configs/config.py", line 113, in load_config_data
+    yaml_string = Path(path).read_text()
+  File "/mnt/appl/software/Python/3.9.5-GCCcore-10.3.0/lib/python3.9/pathlib.py", line 1256, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/mnt/appl/software/Python/3.9.5-GCCcore-10.3.0/lib/python3.9/pathlib.py", line 1242, in open
+    return io.open(self, mode, buffering, encoding, errors, newline,
+  File "/mnt/appl/software/Python/3.9.5-GCCcore-10.3.0/lib/python3.9/pathlib.py", line 1110, in _opener
+    return self._accessor.open(self, flags, mode)
+FileNotFoundError: [Errno 2] No such file or directory: 'configs/data_config/da_poss_kitti/uda_poss_kitti_f2_2_time.yaml'
+Traceback (most recent call last):
+  File "/home/gebreawe/Code/Segmentation/T-UDA/train_uda.py", line 367, in <module>
+    main(args)
+  File "/home/gebreawe/Code/Segmentation/T-UDA/train_uda.py", line 64, in main
+    configs = load_config_data(config_path)
+  File "/home/gebreawe/Code/Segmentation/T-UDA/configs/config.py", line 113, in load_config_data
+    yaml_string = Path(path).read_text()
+  File "/mnt/appl/software/Python/3.9.5-GCCcore-10.3.0/lib/python3.9/pathlib.py", line 1256, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/mnt/appl/software/Python/3.9.5-GCCcore-10.3.0/lib/python3.9/pathlib.py", line 1242, in open
+    return io.open(self, mode, buffering, encoding, errors, newline,
+  File "/mnt/appl/software/Python/3.9.5-GCCcore-10.3.0/lib/python3.9/pathlib.py", line 1110, in _opener
+    return self._accessor.open(self, flags, mode)
+FileNotFoundError: [Errno 2] No such file or directory: 'configs/data_config/da_poss_kitti/uda_poss_kitti_f2_2_time.yaml'
+WARNING:torch.distributed.elastic.multiprocessing.api:Sending process 2883363 closing signal SIGTERM
+ERROR:torch.distributed.elastic.multiprocessing.api:failed (exitcode: 1) local_rank: 0 (pid: 2883362) of binary: /mnt/appl/software/Python/3.9.5-GCCcore-10.3.0/bin/python
+Traceback (most recent call last):
+  File "/mnt/appl/software/Python/3.9.5-GCCcore-10.3.0/lib/python3.9/runpy.py", line 197, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/mnt/appl/software/Python/3.9.5-GCCcore-10.3.0/lib/python3.9/runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "/mnt/appl/software/PyTorch/1.10.0-foss-2021a-CUDA-11.3.1/lib/python3.9/site-packages/torch/distributed/launch.py", line 193, in <module>
+    main()
+  File "/mnt/appl/software/PyTorch/1.10.0-foss-2021a-CUDA-11.3.1/lib/python3.9/site-packages/torch/distributed/launch.py", line 189, in main
+    launch(args)
+  File "/mnt/appl/software/PyTorch/1.10.0-foss-2021a-CUDA-11.3.1/lib/python3.9/site-packages/torch/distributed/launch.py", line 174, in launch
+    run(args)
+  File "/mnt/appl/software/PyTorch/1.10.0-foss-2021a-CUDA-11.3.1/lib/python3.9/site-packages/torch/distributed/run.py", line 710, in run
+    elastic_launch(
+  File "/mnt/appl/software/PyTorch/1.10.0-foss-2021a-CUDA-11.3.1/lib/python3.9/site-packages/torch/distributed/launcher/api.py", line 131, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+  File "/mnt/appl/software/PyTorch/1.10.0-foss-2021a-CUDA-11.3.1/lib/python3.9/site-packages/torch/distributed/launcher/api.py", line 259, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+train_uda.py FAILED
+------------------------------------------------------------
+Failures:
+  <NO_OTHER_FAILURES>
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2022-08-15_15:09:20
+  host      : g08
+  rank      : 0 (local_rank: 0)
+  exitcode  : 1 (pid: 2883362)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================

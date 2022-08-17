@@ -1,0 +1,46 @@
+train_uda.py --config_path configs/data_config/da_kitti_usl/uda_usl_kitti_f2_2_time.yaml
+Namespace(config_path='configs/data_config/da_kitti_usl/uda_usl_kitti_f2_2_time.yaml', mgpus=False, local_rank=0)
+distributed: False
+[480 360  32]
+[480 360  32]
+|-------------------------Training started-----------------------------------------|
+focal_loss:False, weighted_cross_entropy: False
+  0%|          | 0/1050 [00:00<?, ?it/s] 10%|▉         | 100/1050 [03:31<33:31,  2.12s/it] 19%|█▉        | 200/1050 [06:36<27:44,  1.96s/it] 29%|██▊       | 300/1050 [09:43<23:58,  1.92s/it] 38%|███▊      | 400/1050 [12:48<20:30,  1.89s/it] 48%|████▊     | 500/1050 [15:54<17:13,  1.88s/it] 57%|█████▋    | 600/1050 [18:59<14:02,  1.87s/it] 67%|██████▋   | 700/1050 [22:02<10:49,  1.86s/it] 76%|███████▌  | 800/1050 [25:06<07:42,  1.85s/it] 86%|████████▌ | 900/1050 [28:10<04:37,  1.85s/it] 95%|█████████▌| 1000/1050 [31:12<01:31,  1.84s/it]epoch 0 iter    99, loss: 3.646
+
+epoch 0 iter   199, loss: 3.638
+
+epoch 0 iter   299, loss: 3.640
+
+epoch 0 iter   399, loss: 3.640
+
+epoch 0 iter   499, loss: 3.639
+
+epoch 0 iter   599, loss: 3.640
+
+epoch 0 iter   699, loss: 3.639
+
+epoch 0 iter   799, loss: 3.640
+
+epoch 0 iter   899, loss: 3.640
+
+epoch 0 iter   999, loss: 3.640
+
+--------------- epoch: 0 ----------------
+Validation per class iou: 
+person : 0.00%
+bicyclist : 0.00%
+car : 0.00%
+trunk : 3.76%
+vegetation : 5.13%
+traffic-sign : 0.00%
+pole : 1.64%
+other-object : 0.00%
+building : 0.53%
+fence : 0.00%
+bicycle : 0.00%
+road : 1.69%
+Current val miou is 1.063 while the best val miou is 1.063
+Current val loss is 3.600
+
+  0%|          | 0/1050 [00:00<?, ?it/s][A
+ 10%|▉         | 100/1050 [03:05<29:22,  1.85s/it][A
