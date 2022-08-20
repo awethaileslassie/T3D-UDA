@@ -36,8 +36,10 @@ class Trainer(object):
                  ckpt_dir,
                  unique_label,
                  unique_label_str,
-                 lovasz_softmax,
-                 loss_func,
+                 lovasz_softmax_teacher,
+                 loss_func_teacher,
+                 lovasz_softmax_student,
+                 loss_func_student,
                  ignore_label, train_mode=None, ssl=None, eval_frequency=1, pytorch_device=0, warmup_epoch=1,
                  ema_frequency=5):
         self.student_model = student_model
@@ -48,8 +50,10 @@ class Trainer(object):
         self.unique_label = unique_label
         self.unique_label_str = unique_label_str
         self.eval_frequency = eval_frequency
-        self.lovasz_softmax = lovasz_softmax
-        self.loss_func = loss_func
+        self.lovasz_softmax_teacher = lovasz_softmax_teacher
+        self.loss_func_teacher = loss_func_teacher
+        self.lovasz_softmax_student = lovasz_softmax_student
+        self.loss_func_student = loss_func_student
         self.ignore_label = ignore_label
         self.train_mode = train_mode
         self.ssl = ssl
@@ -57,26 +61,25 @@ class Trainer(object):
         self.warmup_epoch = warmup_epoch
         self.ema_frequency = ema_frequency
 
-    def criterion(self, outputs, point_label_tensor, lcw=None, mode='GT'):
+    def criterion(self, outputs, point_label_tensor, lcw=None, mode='Teacher'):
         if self.ssl:
-            if mode == 'GT':
+            if mode == 'Teacher':
                 lcw_tensor = torch.FloatTensor(lcw).to(self.pytorch_device)
             else:
                 lcw_tensor = lcw
 
-            loss = self.lovasz_softmax(torch.nn.functional.softmax(outputs), point_label_tensor,
+            loss = self.lovasz_softmax_student(torch.nn.functional.softmax(outputs), point_label_tensor,
                                        ignore=self.ignore_label, lcw=lcw_tensor) \
-                   + self.loss_func(outputs, point_label_tensor, lcw=lcw_tensor)
+                   + self.loss_func_student(outputs, point_label_tensor, lcw=lcw_tensor)
+        elif mode == 'Student':
+            lcw_tensor = lcw
+            loss = self.lovasz_softmax_student(torch.nn.functional.softmax(outputs), point_label_tensor,
+                                       ignore=self.ignore_label, lcw=lcw_tensor) \
+                   + self.loss_func_student(outputs, point_label_tensor, lcw=lcw_tensor)
         else:
-            loss = self.lovasz_softmax(torch.nn.functional.softmax(outputs), point_label_tensor,
+            loss = self.lovasz_softmax_teacher(torch.nn.functional.softmax(outputs), point_label_tensor,
                                        ignore=self.ignore_label) \
-                   + self.loss_func(outputs, point_label_tensor)
-        # elif mode == 'Infered':
-        #     lcw_tensor = lcw
-        #     loss = self.lovasz_softmax(torch.nn.functional.softmax(outputs), point_label_tensor,
-        #                                ignore=self.ignore_label, lcw=lcw_tensor) \
-        #            + self.loss_func(outputs, point_label_tensor, lcw=lcw_tensor)
-
+                   + self.loss_func_teacher(outputs, point_label_tensor)
         return loss
 
     # updating teacher model weights
@@ -98,35 +101,36 @@ class Trainer(object):
         self.teacher_model.load_state_dict(new_teacher_dict)
 
     def validate(self, my_model, val_dataset_loader, val_batch_size, test_loader=None, ssl=None):
-        my_model.eval()
         hist_list = []
         val_loss_list = []
-        for i_iter_val, (
-                _, val_vox_label, val_grid, val_pt_labs, val_pt_fea, ref_st_idx, ref_end_idx, lcw) in enumerate(
-            val_dataset_loader):
-            val_pt_fea_ten = [torch.from_numpy(i).type(torch.FloatTensor).to(self.pytorch_device) for i in val_pt_fea]
-            val_grid_ten = [torch.from_numpy(i).to(self.pytorch_device) for i in val_grid]
-            val_label_tensor = val_vox_label.type(torch.LongTensor).to(self.pytorch_device)
+        my_model.eval()
+        with torch.no_grad():
+            for i_iter_val, (
+                    _, val_vox_label, val_grid, val_pt_labs, val_pt_fea, ref_st_idx, ref_end_idx, lcw) in enumerate(
+                val_dataset_loader):
+                val_pt_fea_ten = [torch.from_numpy(i).type(torch.FloatTensor).to(self.pytorch_device) for i in val_pt_fea]
+                val_grid_ten = [torch.from_numpy(i).to(self.pytorch_device) for i in val_grid]
+                val_label_tensor = val_vox_label.type(torch.LongTensor).to(self.pytorch_device)
 
-            predict_labels = my_model(val_pt_fea_ten, val_grid_ten, val_batch_size)
-            # aux_loss = loss_fun(aux_outputs, point_label_tensor)
+                predict_labels = my_model(val_pt_fea_ten, val_grid_ten, val_batch_size)
+                # aux_loss = loss_fun(aux_outputs, point_label_tensor)
 
-            inp = val_label_tensor.size(0)
+                inp = val_label_tensor.size(0)
 
-            # TODO: check if this is correctly implemented
-            # hack for batch_size mismatch with the number of training example
-            predict_labels = predict_labels[:inp, :, :, :, :]
+                # TODO: check if this is correctly implemented
+                # hack for batch_size mismatch with the number of training example
+                predict_labels = predict_labels[:inp, :, :, :, :]
 
-            loss = self.criterion(predict_labels, val_label_tensor, lcw)
+                loss = self.criterion(predict_labels, val_label_tensor, lcw)
 
-            predict_labels = torch.argmax(predict_labels, dim=1)
-            predict_labels = predict_labels.cpu().detach().numpy()
-            for count, i_val_grid in enumerate(val_grid):
-                hist_list.append(fast_hist_crop(predict_labels[
-                                                    count, val_grid[count][:, 0], val_grid[count][:, 1],
-                                                    val_grid[count][:, 2]], val_pt_labs[count],
-                                                self.unique_label))
-            val_loss_list.append(loss.detach().cpu().numpy())
+                predict_labels = torch.argmax(predict_labels, dim=1)
+                predict_labels = predict_labels.cpu().detach().numpy()
+                for count, i_val_grid in enumerate(val_grid):
+                    hist_list.append(fast_hist_crop(predict_labels[
+                                                        count, val_grid[count][:, 0], val_grid[count][:, 1],
+                                                        val_grid[count][:, 2]], val_pt_labs[count],
+                                                    self.unique_label))
+                val_loss_list.append(loss.detach().cpu().numpy())
 
         return hist_list, val_loss_list
 
@@ -135,10 +139,11 @@ class Trainer(object):
             ckpt_save_interval=5, lr_scheduler_each_iter=False):
 
         global_iter = 0
-        pbar = tqdm(total=len(source_train_dataset_loader))
+        best_val_miou = 0
 
         for epoch in range(n_epochs):
 
+            pbar = tqdm(total=len(source_train_dataset_loader))
             # train the model
             loss_list = []
             self.teacher_model.train()
@@ -167,8 +172,8 @@ class Trainer(object):
                 # TODO: check --> to mitigate only one element tensors can be converted to Python scalars
                 # loss = loss.mean()
                 loss.backward()
-                self.optimizer.step()
-                self.optimizer.zero_grad()
+                self.optimizer_teacher.step()
+                self.optimizer_teacher.zero_grad()
 
                 # Uncomment to use the learning rate scheduler
                 # scheduler.step()
@@ -182,17 +187,17 @@ class Trainer(object):
                     else:
                         print('loss error')
 
-                global_iter += 1
-
                 if global_iter % 100 == 0:
-                    pbar.update(100)
+                    if len(loss_list) > 0:
+                        print('epoch %d iter %5d, loss: %.3f\n' % (epoch, i_iter_train, np.mean(loss_list)))
+                    else:
+                        print('loss error')
+                global_iter += 1
 
             # ----------------------------------------------------------------------#
             # Evaluation/validation
-            hist_list = []
-            val_loss_list = []
             with torch.no_grad():
-                self.validate(self.student_model, val_dataset_loader, val_batch_size, test_loader, self.ssl)
+                hist_list, val_loss_list = self.validate(self.teacher_model, val_dataset_loader, val_batch_size, test_loader, self.ssl)
 
             # ----------------------------------------------------------------------#
             # Print validation mIoU and Loss
@@ -207,7 +212,7 @@ class Trainer(object):
             # save model if performance is improved
             if best_val_miou < val_miou:
                 best_val_miou = val_miou
-                torch.save(self.student_model.state_dict(), self.model_save_path)
+                torch.save(self.teacher_model.state_dict(), self.model_save_path)
 
             print('Current val miou is %.3f while the best val miou is %.3f' %
                   (val_miou, best_val_miou))
@@ -246,8 +251,8 @@ class Trainer(object):
         # call the target data generator function
         target_data_generator = yield_target_dataset_loader(n_epochs, target_train_dataset_loader)
         best_val_miou = 0
+        global_iter = 1
         for epoch in range(n_epochs):
-            global_iter = 1
             pbar = tqdm(total=len(source_train_dataset_loader))
             # train the model
             loss_list = []
@@ -318,11 +323,15 @@ class Trainer(object):
                     predict_probability = torch.nn.functional.softmax(target_prediction, dim=1)
                     # pseudo label confidence ---> lcw
                     pseudo_labels_prob_lcw, predict_prob_ind = predict_probability.max(dim=1)
+                    # multiply by 100
+                    pseudo_labels_prob_lcw = pseudo_labels_prob_lcw * 100
 
+                    # Create a lcw tensor of ones for the source data and multiply by 100
+                    source_lcw = torch.ones_like(source_point_label_tensor) * 100
                     ###
                     # loss calculation
-                    loss = self.criterion(source_output, source_point_label_tensor, source_lcw) \
-                           + self.criterion(target_output, pseudo_label, pseudo_labels_prob_lcw, 'Infered')
+                    loss = self.criterion(source_output, source_point_label_tensor, source_lcw, 'Student') \
+                           + self.criterion(target_output, pseudo_label, pseudo_labels_prob_lcw, 'Student')
 
                     # TODO: check --> to mitigate only one element tensors can be converted to Python scalars
                     # loss = loss.mean()
@@ -340,7 +349,6 @@ class Trainer(object):
                     self._update_teacher_model()
 
                 if global_iter % 100 == 0:
-                    pbar.update(100)
                     if len(loss_list) > 0:
                         print('epoch %d iter %5d, loss: %.3f\n' % (epoch, i_iter_train, np.mean(loss_list)))
                     else:
