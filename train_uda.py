@@ -135,14 +135,22 @@ def main(args):
         class_weights = semantic_kitti_class_weights
         per_class_weight = torch.from_numpy(class_weights).to(pytorch_device)
 
-    if ssl:
-        loss_func, lovasz_softmax = loss_builder.build(wce=True, lovasz=True,
-                                                       num_class=num_class, ignore_label=ignore_label,
-                                                       weights=per_class_weight, ssl=True, fl=focal_loss)
-    else:
-        loss_func, lovasz_softmax = loss_builder.build(wce=True, lovasz=True,
-                                                       num_class=num_class, ignore_label=ignore_label,
-                                                       weights=per_class_weight, fl=focal_loss)
+    # if ssl:
+    #     loss_func, lovasz_softmax = loss_builder.build(wce=True, lovasz=True,
+    #                                                    num_class=num_class, ignore_label=ignore_label,
+    #                                                    weights=per_class_weight, ssl=True, fl=focal_loss)
+    # else:
+    #     loss_func, lovasz_softmax = loss_builder.build(wce=True, lovasz=True,
+    #                                                    num_class=num_class, ignore_label=ignore_label,
+    #                                                    weights=per_class_weight, fl=focal_loss)
+
+    loss_func_student, lovasz_softmax_student = loss_builder.build(wce=True, lovasz=True,
+                                                   num_class=num_class, ignore_label=ignore_label,
+                                                   weights=per_class_weight, ssl=True, fl=focal_loss)
+
+    loss_func_teacher, lovasz_softmax_teacher = loss_builder.build(wce=True, lovasz=True,
+                                                   num_class=num_class, ignore_label=ignore_label,
+                                                   weights=per_class_weight, fl=focal_loss)
 
     source_train_dataset_loader, source_val_dataset_loader, _, target_train_dataset_loader = data_builder.build(
         dataset_config,
@@ -174,14 +182,16 @@ def main(args):
                       ckpt_dir=model_save_path,
                       unique_label=unique_label,
                       unique_label_str=unique_label_str,
-                      lovasz_softmax=lovasz_softmax,
-                      loss_func=loss_func,
+                      lovasz_softmax_teacher=lovasz_softmax_teacher,
+                      loss_func_teacher=loss_func_teacher,
+                      lovasz_softmax_student=lovasz_softmax_student,
+                      loss_func_student=loss_func_student,
                       ignore_label=ignore_label,
                       train_mode="ema",
                       ssl=ssl,
                       eval_frequency=5,
                       pytorch_device=pytorch_device,
-                      warmup_epoch=1,
+                      warmup_epoch=0,
                       ema_frequency=2)
 
     # train and val model
