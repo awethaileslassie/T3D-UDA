@@ -7,7 +7,7 @@
 #SBATCH --partition=amdgpulong	  # gpufast
 #SBATCH --gres=gpu:1
 #SBATCH --mem=60G
-#SBATCH --output=/home/gebreawe/Model_logs/Segmentation/T-UDA/logs/dpp_train_uda_kitti_poss_f2_2_time_%j.log     # file name for stdout/stderr
+#SBATCH --output=/home/gebreawe/Model_logs/Segmentation/T-UDA/logs/train_uda_kitti_poss_f2_2_time_%j.log     # file name for stdout/stderr
 # module
 #ml spconv/20210618-fosscuda-2020b
 ml spconv/2.1.21-foss-2021a-CUDA-11.3.1
