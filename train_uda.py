@@ -86,8 +86,8 @@ def main(args):
     num_class = model_config['num_class']
     ignore_label = dataset_config['ignore_label']
 
-    model_load_path = train_hypers['model_load_path']
-    model_save_path = train_hypers['model_save_path']
+    student_model_path = train_hypers['student_model_path']
+    teacher_model_path = train_hypers['teacher_model_path']
 
     SemKITTI_label_name = get_label_name(dataset_config["label_mapping"])
     # NB: no ignored class
@@ -98,9 +98,11 @@ def main(args):
 
     teacher_model = model_builder.build(model_config).to(pytorch_device)
 
-    if os.path.exists(model_load_path):
-        student_model = load_checkpoint(model_load_path, student_model, map_location=pytorch_device)
-        teacher_model = load_checkpoint(model_load_path, teacher_model, map_location=pytorch_device)
+    if os.path.exists(student_model_path):
+        student_model = load_checkpoint(student_model_path, student_model, map_location=pytorch_device)
+    if os.path.exists(teacher_model_path):
+        teacher_model = load_checkpoint(teacher_model_path, teacher_model, map_location=pytorch_device)
+
 
     # if args.mgpus:
     #     student_model = nn.DataParallel(student_model)
@@ -179,7 +181,8 @@ def main(args):
                       teacher_model=teacher_model,
                       optimizer_teacher=optimizer_teacher,
                       optimizer_student=optimizer_student,
-                      ckpt_dir=model_save_path,
+                      teacher_ckpt_dir=teacher_model_path,
+                      student_ckpt_dir=student_model_path,
                       unique_label=unique_label,
                       unique_label_str=unique_label_str,
                       lovasz_softmax_teacher=lovasz_softmax_teacher,
@@ -189,10 +192,10 @@ def main(args):
                       ignore_label=ignore_label,
                       train_mode="ema",
                       ssl=ssl,
-                      eval_frequency=5,
+                      eval_frequency=1,
                       pytorch_device=pytorch_device,
-                      warmup_epoch=0,
-                      ema_frequency=2)
+                      warmup_epoch=5,
+                      ema_frequency=5)
 
     # train and val model
     trainer.uda_fit(train_hypers["max_num_epochs"],

@@ -33,20 +33,27 @@ class Trainer(object):
                  teacher_model,
                  optimizer_teacher,
                  optimizer_student,
-                 ckpt_dir,
+                 teacher_ckpt_dir,
+                 student_ckpt_dir,
                  unique_label,
                  unique_label_str,
                  lovasz_softmax_teacher,
                  loss_func_teacher,
                  lovasz_softmax_student,
                  loss_func_student,
-                 ignore_label, train_mode=None, ssl=None, eval_frequency=1, pytorch_device=0, warmup_epoch=1,
+                 ignore_label,
+                 train_mode=None,
+                 ssl=None,
+                 eval_frequency=1,
+                 pytorch_device=0,
+                 warmup_epoch=1,
                  ema_frequency=5):
         self.student_model = student_model
         self.teacher_model = teacher_model
         self.optimizer_teacher = optimizer_teacher
         self.optimizer_student = optimizer_student
-        self.model_save_path = ckpt_dir
+        self.teacher_model_save_path = teacher_ckpt_dir
+        self.student_model_save_path = student_ckpt_dir
         self.unique_label = unique_label
         self.unique_label_str = unique_label_str
         self.eval_frequency = eval_frequency
@@ -180,14 +187,8 @@ class Trainer(object):
 
                 loss_list.append(loss.item())
 
-                if global_iter % 1000 == 0:
-                    if len(loss_list) > 0:
-                        print('epoch %d iter %5d, loss: %.3f\n' %
-                              (epoch, i_iter_train, np.mean(loss_list)))
-                    else:
-                        print('loss error')
-
-                if global_iter % 100 == 0:
+                if global_iter % 500 == 0:
+                    pbar.update(500)
                     if len(loss_list) > 0:
                         print('epoch %d iter %5d, loss: %.3f\n' % (epoch, i_iter_train, np.mean(loss_list)))
                     else:
@@ -212,12 +213,11 @@ class Trainer(object):
             # save model if performance is improved
             if best_val_miou < val_miou:
                 best_val_miou = val_miou
-                torch.save(self.teacher_model.state_dict(), self.model_save_path)
+                torch.save(self.teacher_model.state_dict(), self.teacher_model_save_path)
 
             print('Current val miou is %.3f while the best val miou is %.3f' %
                   (val_miou, best_val_miou))
-            print('Current val loss is %.3f' %
-                  (np.mean(val_loss_list)))
+            # print('Current val loss is %.3f' % (np.mean(val_loss_list)))
 
     def forward(self, model, train_vox_label, train_grid, train_pt_fea, train_batch_size, mode='Train'):
         grad = False
@@ -345,10 +345,12 @@ class Trainer(object):
 
                 # -------EMA ----------------#
                 # EMA: Student ---> Teacher
-                if (epoch % self.ema_frequency == 0) and (epoch >= self.warmup_epoch):
+                if ((epoch - self.warmup_epoch) % self.ema_frequency == 0) and (epoch > self.warmup_epoch):
                     self._update_teacher_model()
+                    torch.save(self.teacher_model.state_dict(), self.teacher_model_save_path)
 
-                if global_iter % 100 == 0:
+                if global_iter % 500 == 0:
+                    pbar.update(500)
                     if len(loss_list) > 0:
                         print('epoch %d iter %5d, loss: %.3f\n' % (epoch, i_iter_train, np.mean(loss_list)))
                     else:
@@ -381,7 +383,10 @@ class Trainer(object):
             # save model if performance is improved
             if best_val_miou < val_miou:
                 best_val_miou = val_miou
-                torch.save(self.student_model.state_dict(), self.model_save_path)
+                if epoch < self.warmup_epoch:
+                    torch.save(self.teacher_model.state_dict(), self.teacher_model_save_path)
+                else:
+                    torch.save(self.student_model.state_dict(), self.student_model_save_path)
 
             print('Current val miou is %.3f while the best val miou is %.3f' % (val_miou, best_val_miou))
-            print('Current val loss is %.3f' % (np.mean(val_loss_list)))
+            # print('Current val loss is %.3f' % (np.mean(val_loss_list)))

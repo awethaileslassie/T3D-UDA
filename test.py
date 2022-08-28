@@ -99,8 +99,8 @@ def main(args):
     num_class = model_config['num_class']
     ignore_label = dataset_config['ignore_label']
 
-    model_load_path = train_hypers['model_load_path']
-    model_save_path = train_hypers['model_save_path']
+    teacher_model_path = train_hypers['teacher_model_path']
+    student_model_path = train_hypers['student_model_path']
 
     SemKITTI_label_name = get_label_name(dataset_config["label_mapping"])
     unique_label = np.asarray(sorted(list(SemKITTI_label_name.keys())))[1:] - 1
@@ -108,10 +108,10 @@ def main(args):
 
     SemKITTI_learningmap_inv = get_label_inv_name(dataset_config["label_mapping"])
     model = model_builder.build(model_config).to(pytorch_device)
-    print(f"model_load_path: {model_load_path}")
-    if os.path.exists(model_load_path):
-        model = load_checkpoint(model_load_path, model, map_location=pytorch_device)
-        print(f" loading model_load_path: {model_load_path}")
+    print(f"teacher_model_path: {teacher_model_path}")
+    if os.path.exists(teacher_model_path):
+        model = load_checkpoint(teacher_model_path, model, map_location=pytorch_device)
+        print(f" loading teacher_model_path: {teacher_model_path}")
 
     # if args.mgpus:
     #     my_model = nn.DataParallel(my_model)
@@ -314,14 +314,13 @@ def main(args):
 if __name__ == '__main__':
     # Training settings
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-y', '--config_path', default='configs/data_config/da_kitti_poss/uda_test_poss_kitti_f2_2_time.yaml')
+    parser.add_argument('-y', '--config_path', default='configs/data_config/da_kitti_poss/uda_kitti_poss_f2_2_time.yaml')
     # parser.add_argument('-y', '--config_path', default='configs/data_config/synthetic/synth4dsynth_f3_3_time.yaml')
     parser.add_argument('-g', '--mgpus', action='store_true', default=False)
     parser.add_argument('-m', '--mode', default='val')
     parser.add_argument('-s', '--save', default=True)
     parser.add_argument('-c', '--challenge', default=False)
-    parser.add_argument('-p', '--challenge_path', default='/mnt/beegfs/gpu/argoverse-tracking-all-training/' \
-                                                          'WOD/challenge')
+    parser.add_argument('-p', '--challenge_path', default='/mnt/personal/gebreawe/')
     parser.add_argument('-u', '--ups', default=False)
     parser.add_argument("--local_rank", default=0, type=int)
     args = parser.parse_args()

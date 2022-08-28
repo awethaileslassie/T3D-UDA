@@ -73,8 +73,8 @@ ssl_data_loader:
 ###################
 ## test params
 train_params:
-  model_load_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/kitti_usl_f2_2_time.pt"
-  model_save_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/kitti_usl_f2_2_time.pt"
+  teacher_model_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/teacher_kitti_usl_f2_2_time.pt"
+  student_model_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/student_kitti_usl_f2_2_time.pt"
   checkpoint_every_n_steps: 1000
   max_num_epochs: 40
   eval_every_n_steps: 1000
@@ -85,5 +85,7 @@ train_params:
   T_future: '3_time'
   ssl: False
   rgb: False
-  uda: False
+  uda: True
   time: True
+  S_sensor_zpose: 1.79
+  T_sensor_zpose: 1.29

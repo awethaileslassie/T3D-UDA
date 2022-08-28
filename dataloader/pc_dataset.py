@@ -330,14 +330,19 @@ class SemKITTI_sk_multiscan(data.Dataset):
 
         if imageset == 'train':
             self.split = semkittiyaml['split']['train']
+            self.sensor_zpose = train_hypers["S_sensor_zpose"]
             if self.ssl and (ssl_data_path is not None):
                 self.split += semkittiyaml['split']['pseudo']
+                self.sensor_zpose = train_hypers["T_sensor_zpose"]
         elif imageset == 'val':
             self.split = semkittiyaml['split']['valid']
+            self.sensor_zpose = train_hypers["S_sensor_zpose"]
         elif imageset == 'test':
             self.split = semkittiyaml['split']['test']
+            self.sensor_zpose = train_hypers["S_sensor_zpose"]
         elif imageset == 'pseudo':
             self.split = semkittiyaml['split']['pseudo']
+            self.sensor_zpose = train_hypers["T_sensor_zpose"]
         else:
             raise Exception(f'{imageset}: Split must be train/val/test/pseudo')
 
@@ -441,7 +446,7 @@ class SemKITTI_sk_multiscan(data.Dataset):
             raw_data[:, 3] = np.ones_like(raw_data[:, 3]) * time_frame_idx
 
         if self.UDA:
-            raw_data[:, 2] += 2.0  # elevate the point cloud two meters up to align with WOD
+            raw_data[:, 2] += self.sensor_zpose  # elevate the point cloud two meters up to align with WOD
 
         if self.imageset == 'test' or self.imageset == 'pseudo':
             annotated_data = np.expand_dims(np.zeros_like(raw_data[:, 0], dtype=int), axis=1)
@@ -475,42 +480,6 @@ class SemKITTI_sk_multiscan(data.Dataset):
         return raw_data, annotated_data, len(raw_data), lcw
 
     def __getitem__(self, index):
-        # raw_data = np.fromfile(self.im_idx[index], dtype=np.float32).reshape((-1, 4))
-        # if self.use_time:
-        #     raw_data[:, 3] = np.zeros_like(raw_data[:, 3])  # replace intensity with time
-        #
-        # if self.UDA:
-        #     raw_data[:, 2] += 2.0  # elevate the point cloud two meters up to align with WOD
-        #
-        # origin_len = len(raw_data)
-        # if self.imageset == 'test':
-        #     annotated_data = np.expand_dims(np.zeros_like(raw_data[:, 0], dtype=int), axis=1)
-        # else:
-        #     # x = self.im_idx[index].replace('velodyne', f"predictions_f{self.T_past}_{self.T_future}")[:-3] + 'label'
-        #     if ssl and exists(self.im_idx[index].replace('velodyne', f"predictions_f{self.T_past}_{self.T_future}")[
-        #                       :-3] + 'label'):
-        #         annotated_data = np.fromfile(
-        #             self.im_idx[index].replace('velodyne', f"predictions_f{self.T_past}_{self.T_future}")[
-        #             :-3] + 'label',
-        #             dtype=np.int32).reshape((-1, 1))
-        #     else:
-        #         annotated_data = np.fromfile(self.im_idx[index].replace('velodyne', 'labels')[:-3] + 'label',
-        #                                      dtype=np.int32).reshape((-1, 1))
-        #
-        #     annotated_data = annotated_data & 0xFFFF  # delete high 16 digits binary
-        #     # annotated_data = np.vectorize(self.learning_map.__getitem__)(annotated_data)
-        #     if ssl and exists(self.im_idx[index].replace('velodyne', f"probability_f{self.T_past}_{self.T_future}")[
-        #                       :-3] + 'label'):
-        #         lcw = np.fromfile(self.im_idx[index].replace('velodyne', f"probability_f{self.T_past}_{self.T_future}")[
-        #                           :-3] + 'label',
-        #                           dtype=np.float32).reshape((-1, 1))
-        #         # TODO: check casting
-        #         lcw = (lcw * 100).astype(np.int32)
-        #     elif ssl:  # in case of GT label give weight = 1.0 per label
-        #         lcw = np.expand_dims(np.ones_like(raw_data[:, 0], dtype=np.float32), axis=1)
-        #         # TODO: check casting
-        #         lcw = (lcw * 100).astype(np.int32)
-
         # reference scan
         reference_file = self.im_idx[index]
         raw_data, annotated_data, data_len, lcw = self.get_semantickitti_data(reference_file, 0)
@@ -622,14 +591,18 @@ class WOD_multiscan(data.Dataset):
 
         if imageset == 'train':
             self.split = wodyaml['split']['train']
+            self.sensor_zpose = train_hypers["S_sensor_zpose"]
             if self.ssl and (ssl_data_path is not None):
                 self.split += wodyaml['split']['pseudo']
         elif imageset == 'val':
             self.split = wodyaml['split']['valid']
+            self.sensor_zpose = train_hypers["S_sensor_zpose"]
         elif imageset == 'test':
             self.split = wodyaml['split']['test']
+            self.sensor_zpose = train_hypers["S_sensor_zpose"]
         elif imageset == 'pseudo':
             self.split = wodyaml['split']['pseudo']
+            self.sensor_zpose = train_hypers["T_sensor_zpose"]
         else:
             raise Exception(f'{imageset}: Split must be train/val/test/pseudo')
 
@@ -707,7 +680,7 @@ class WOD_multiscan(data.Dataset):
             raw_data[:, 3] = np.ones_like(raw_data[:, 3]) * time_frame_idx
 
         if self.UDA:
-            raw_data[:, 2] += 2.0  # elevate the point cloud two meters up to align with WOD
+            raw_data[:, 2] += self.sensor_zpose  # elevate the point cloud two meters up to align with WOD
 
         # TODO: check if the colors are encoded correctly instead of the lidar intensity
         if self.rgb:
