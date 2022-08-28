@@ -30,4 +30,4 @@ echo "epoch 0"
 
 #CUDA_VISIBLE_DEVICES=0,1 NCCL_P2P_DISABLE=1 python -u -m torch.distributed.launch --nproc_per_node=2 --master_port=$RANDOM train_uda.py --config_path 'configs/data_config/da_kitti_poss/uda_kitti_poss_f2_2_time.yaml' 2>&1 | tee logs_dir/${name}_logs_uda_kitti_poss_f2_2_time.txt
 
-python train_uda.py --config_path 'configs/data_config/da_kitti_poss/uda_kitti_poss_f2_2_time.yaml' 2>&1 | tee logs_dir/${name}_logs_uda_kitti_poss_f2_2_time.txt
+python train_uda.py --config_path 'configs/data_config/da_kitti_poss/uda_kitti_poss_f2_2_time.yaml' 2>&1 | tee logs_dir/${name}_uda_kitti_poss_f2_2_time.txt
