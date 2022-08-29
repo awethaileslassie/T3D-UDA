@@ -67,6 +67,10 @@ class Trainer(object):
         self.pytorch_device = pytorch_device
         self.warmup_epoch = warmup_epoch
         self.ema_frequency = ema_frequency
+        self.val_teacher = False
+        self.val_student = False
+        self.teacher_best_val_miou = 0
+        self.student_best_val_miou = 0
 
     def criterion(self, outputs, point_label_tensor, lcw=None, mode='Teacher'):
         if self.ssl:
@@ -140,6 +144,7 @@ class Trainer(object):
                 val_loss_list.append(loss.detach().cpu().numpy())
 
         return hist_list, val_loss_list
+
 
     def fit(self, n_epochs, source_train_dataset_loader, train_batch_size, val_dataset_loader,
             val_batch_size, test_loader=None,
@@ -219,6 +224,55 @@ class Trainer(object):
                   (val_miou, best_val_miou))
             # print('Current val loss is %.3f' % (np.mean(val_loss_list)))
 
+    def validate_uda(self, val_dataset_loader, val_batch_size, test_loader=None, ssl=None):
+        teacher_hist_list = []
+        teacher_val_loss_list = []
+        student_hist_list = []
+        student_val_loss_list = []
+        self.teacher_model.eval()
+        self.student_model.eval()
+        with torch.no_grad():
+            for i_iter_val, (_, val_vox_label, val_grid, val_pt_labs, val_pt_fea, ref_st_idx, ref_end_idx, lcw) in enumerate(
+                val_dataset_loader):
+                val_pt_fea_ten = [torch.from_numpy(i).type(torch.FloatTensor).to(self.pytorch_device) for i in val_pt_fea]
+                val_grid_ten = [torch.from_numpy(i).to(self.pytorch_device) for i in val_grid]
+                val_label_tensor = val_vox_label.type(torch.LongTensor).to(self.pytorch_device)
+                inp = val_label_tensor.size(0)
+
+                if self.val_teacher:
+                    predict_labels = self.teacher_model(val_pt_fea_ten, val_grid_ten, val_batch_size)
+                    # aux_loss = loss_fun(aux_outputs, point_label_tensor)
+                    # TODO: check if this is correctly implemented
+                    # hack for batch_size mismatch with the number of training example
+                    predict_labels = predict_labels[:inp, :, :, :, :]
+                    loss = self.criterion(predict_labels, val_label_tensor, lcw)
+                    predict_labels = torch.argmax(predict_labels, dim=1)
+                    predict_labels = predict_labels.cpu().detach().numpy()
+                    for count, i_val_grid in enumerate(val_grid):
+                        teacher_hist_list.append(fast_hist_crop(predict_labels[
+                                                            count, val_grid[count][:, 0], val_grid[count][:, 1],
+                                                            val_grid[count][:, 2]], val_pt_labs[count],
+                                                        self.unique_label))
+                    # teacher_val_loss_list.append(loss.detach().cpu().numpy())
+
+                if self.val_student:
+                    predict_labels = self.student_model(val_pt_fea_ten, val_grid_ten, val_batch_size)
+                    # aux_loss = loss_fun(aux_outputs, point_label_tensor)
+                    # TODO: check if this is correctly implemented
+                    # hack for batch_size mismatch with the number of training example
+                    predict_labels = predict_labels[:inp, :, :, :, :]
+                    loss = self.criterion(predict_labels, val_label_tensor, lcw)
+                    predict_labels = torch.argmax(predict_labels, dim=1)
+                    predict_labels = predict_labels.cpu().detach().numpy()
+                    for count, i_val_grid in enumerate(val_grid):
+                        student_hist_list.append(fast_hist_crop(predict_labels[
+                                                            count, val_grid[count][:, 0], val_grid[count][:, 1],
+                                                            val_grid[count][:, 2]], val_pt_labs[count],
+                                                        self.unique_label))
+                    # student_val_loss_list.append(loss.detach().cpu().numpy())
+
+        return teacher_hist_list, student_hist_list
+
     def forward(self, model, train_vox_label, train_grid, train_pt_fea, train_batch_size, mode='Train'):
         grad = False
         if mode == 'Train':
@@ -243,10 +297,10 @@ class Trainer(object):
 
             return outputs, point_label_tensor
 
+
     def uda_fit(self, n_epochs, source_train_dataset_loader, source_train_batch_size,
                 target_train_dataset_loader, target_train_batch_size, val_dataset_loader,
                 val_batch_size, test_loader=None, ckpt_save_interval=5, lr_scheduler_each_iter=False):
-
 
         # call the target data generator function
         target_data_generator = yield_target_dataset_loader(n_epochs, target_train_dataset_loader)
@@ -256,6 +310,10 @@ class Trainer(object):
             pbar = tqdm(total=len(source_train_dataset_loader))
             # train the model
             loss_list = []
+            # switch the teacher model validation to False
+            self.val_teacher = False
+            # switch the student model validation to False
+            self.val_student = False
             # training with multi-frames and ssl:
             for i_iter_train, (
                     _, source_train_vox_label, source_train_grid, _, source_train_pt_fea, source_ref_st_idx,
@@ -281,6 +339,8 @@ class Trainer(object):
                     # Uncomment to use the learning rate scheduler
                     # scheduler.step()
                     loss_list.append(loss.item())
+                    # switch the teacher model validation to True
+                    self.val_teacher = True
 
                 ################################
                 # T-UDA: Student - Teacher mutual learning
@@ -342,12 +402,9 @@ class Trainer(object):
                     # Uncomment to use the learning rate scheduler
                     # scheduler.step()
                     loss_list.append(loss.item())
-
-                # -------EMA ----------------#
-                # EMA: Student ---> Teacher
-                if ((epoch - self.warmup_epoch) % self.ema_frequency == 0) and (epoch > self.warmup_epoch):
-                    self._update_teacher_model()
-                    torch.save(self.teacher_model.state_dict(), self.teacher_model_save_path)
+                    # switch the student model validation to True
+                    self.val_student = True
+                    self.val_teacher = True
 
                 if global_iter % 500 == 0:
                     pbar.update(500)
@@ -360,33 +417,51 @@ class Trainer(object):
             # ----------------------------------------------------------------------#
             # Evaluation/validation
             with torch.no_grad():
-                # during burn in stage validate using teacher model
-                if epoch < self.warmup_epoch:
-                    # Change teacher model to evaluation mode
-                    self.teacher_model.eval()
-                    hist_list, val_loss_list = self.validate(self.teacher_model, val_dataset_loader, val_batch_size, test_loader, self.ssl)
-                else:
-                    # Change student model to evaluation mode
-                    self.student_model.eval()
-                    hist_list, val_loss_list = self.validate(self.student_model, val_dataset_loader, val_batch_size, test_loader, self.ssl)
+                # Change teacher & student model to evaluation mode
+                self.teacher_model.eval()
+                self.student_model.eval()
+                teacher_hist_list, student_hist_list = self.validate_uda(val_dataset_loader, val_batch_size, test_loader, self.ssl)
 
             # ----------------------------------------------------------------------#
             # Print validation mIoU and Loss
             print(f"--------------- epoch: {epoch} ----------------")
-            iou = per_class_iu(sum(hist_list))
-            print('Validation per class iou: ')
-            for class_name, class_iou in zip(self.unique_label_str, iou):
-                print('%s : %.2f%%' % (class_name, class_iou * 100))
-            val_miou = np.nanmean(iou) * 100
-            # del val_vox_label, val_grid, val_pt_fea
-
-            # save model if performance is improved
-            if best_val_miou < val_miou:
-                best_val_miou = val_miou
-                if epoch < self.warmup_epoch:
+            # teacher validation
+            if self.val_teacher:
+                iou = per_class_iu(sum(teacher_hist_list))
+                print('Teacher Validation per class iou: ')
+                for class_name, class_iou in zip(self.unique_label_str, iou):
+                    print('%s : %.2f%%' % (class_name, class_iou * 100))
+                teacher_val_miou = np.nanmean(iou) * 100
+                # save teacher model if performance is improved
+                if self.teacher_best_val_miou < teacher_val_miou:
+                    self.teacher_best_val_miou = teacher_val_miou
                     torch.save(self.teacher_model.state_dict(), self.teacher_model_save_path)
-                else:
+
+                print('Current teacher val miou is %.3f while the best  val miou is %.3f' % (teacher_val_miou, self.teacher_best_val_miou))
+                # del val_vox_label, val_grid, val_pt_fea
+
+            # teacher validation
+            if self.val_student:
+                iou = per_class_iu(sum(student_hist_list))
+                print('Student Validation per class iou: ')
+                for class_name, class_iou in zip(self.unique_label_str, iou):
+                    print('%s : %.2f%%' % (class_name, class_iou * 100))
+                student_val_miou = np.nanmean(iou) * 100
+                # save student model if performance is improved
+                if self.student_best_val_miou < student_val_miou:
+                    self.student_best_val_miou = student_val_miou
                     torch.save(self.student_model.state_dict(), self.student_model_save_path)
 
-            print('Current val miou is %.3f while the best val miou is %.3f' % (val_miou, best_val_miou))
-            # print('Current val loss is %.3f' % (np.mean(val_loss_list)))
+                print('Current Student val miou is %.3f while the best val miou is %.3f' % (student_val_miou, self.student_best_val_miou))
+
+            # -------EMA ----------------#
+            # EMA: Student ---> Teacher
+            if ((epoch - self.warmup_epoch) % self.ema_frequency == 0) and (epoch > self.warmup_epoch):
+                if self.student_best_val_miou < student_val_miou:
+                    self._update_teacher_model()
+                    print("--------------- EMA - Update Performed ----------------")
+                    torch.save(self.teacher_model.state_dict(), self.teacher_model_save_path)
+                    # switch the teacher model validation to True
+                self.val_teacher = True
+
+
