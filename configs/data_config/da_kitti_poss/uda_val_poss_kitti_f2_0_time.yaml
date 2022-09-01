@@ -1,0 +1,91 @@
+# Config format schema number
+format_version: 4
+
+###################
+## Model options
+model_params:
+  model_architecture: "cylinder_asym"
+
+  output_shape:
+    - 480
+    - 360
+    - 32
+
+  fea_dim: 9
+  out_fea_dim: 256
+  num_class: 13
+  num_input_features: 16
+  use_norm: True
+  init_size: 32
+
+###################
+## Dataset options
+dataset_params:
+  dataset_type: "cylinder_dataset"
+  pc_dataset_type: "SemKITTI_sk_multiscan" #  #  # "SemKITTI_sk" #
+  ignore_label: 0 # undefined
+  return_test: False
+  fixed_volume_space: True
+  label_mapping: "./configs/label_mapping/da_kitti_poss_usl/kitti.yaml"
+  max_volume_space:
+    - 50
+    - 3.1415926
+    - 4
+  min_volume_space:
+    - 0
+    - -3.1415926
+    - -2
+
+###################
+## Data_loader options
+train_data_loader:
+  data_path: "/mnt/personal/gebreawe/Datasets/RealWorld/semantic-kitti/dataset/sequences"
+  imageset: "train"
+  return_ref: True
+  batch_size: 2 #4
+  shuffle: True
+  num_workers: 0
+
+val_data_loader:
+  data_path: "/mnt/personal/gebreawe/Datasets/RealWorld/semantic-kitti/dataset/sequences"
+  imageset: "val"
+  return_ref: True
+  batch_size: 4
+  shuffle: False
+  num_workers: 0
+
+test_data_loader:
+  data_path: "/mnt/personal/gebreawe/Datasets/RealWorld/semantic-kitti/dataset/sequences"
+  imageset: "test"
+  return_ref: True
+  batch_size: 2
+  shuffle: False
+  num_workers: 4
+
+ssl_data_loader:
+  data_path: "/mnt/personal/gebreawe/Datasets/RealWorld/SemanticPOSS_dataset/sequences"
+  imageset: "pseudo"
+  return_ref: True
+  batch_size: 2
+  shuffle: False
+  num_workers: 4
+
+###################
+## test params
+train_params:
+  teacher_model_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/teacher_poss_kitti_f2_0_time_ema_.pt"
+  student_model_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/student_poss_kitti_f2_0_time_ema_.pt"
+  checkpoint_every_n_steps: 1000
+  max_num_epochs: 40
+  eval_every_n_steps: 1000
+  learning_rate: 0.001
+  past: 2
+  future: 0
+  T_past: '2_poss'
+  T_future: '0_kitti'
+  ssl: False
+  rgb: False
+  uda: True
+  time: True
+  S_sensor_zpose: 1.79
+  T_sensor_zpose: 2.19
