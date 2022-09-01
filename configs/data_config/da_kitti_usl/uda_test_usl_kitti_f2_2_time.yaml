@@ -73,8 +73,8 @@ ssl_data_loader:
 ###################
 ## test params
 train_params:
-  teacher_model_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/teacher_usl_kitti_f2_2_time.pt"
-  student_model_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/student_usl_kitti_f2_2_time.pt"
+  teacher_model_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/teacher_usl_kitti_f2_2_time_ema.pt"
+  student_model_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/student_usl_kitti_f2_2_time_ema.pt"
   checkpoint_every_n_steps: 1000
   max_num_epochs: 40
   eval_every_n_steps: 1000
