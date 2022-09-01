@@ -71,6 +71,7 @@ class Trainer(object):
         self.val_student = False
         self.teacher_best_val_miou = 0
         self.student_best_val_miou = 0
+        self.ema_update_now = False
 
     def criterion(self, outputs, point_label_tensor, lcw=None, mode='Teacher'):
         if self.ssl:
@@ -99,6 +100,7 @@ class Trainer(object):
         student_model_dict = self.student_model.state_dict()
 
         new_teacher_dict = copy.copy(self.teacher_model.state_dict())  # OrderedDict()
+        # print(f"before: {self.teacher_model.state_dict()}")
         for key, value in self.teacher_model.state_dict().items():
             if key in student_model_dict.keys():
                 new_teacher_dict[key] = (
@@ -108,9 +110,9 @@ class Trainer(object):
             # else:
             #    print("{} is not found in student model".format(key))
             #    #raise Exception("{} is not found in student model".format(key))
-
+        # print(f"new_teacher_dict: {new_teacher_dict}")
         self.teacher_model.load_state_dict(new_teacher_dict)
-
+        # print(f"after: {self.teacher_model.state_dict()}")
     def validate(self, my_model, val_dataset_loader, val_batch_size, test_loader=None, ssl=None):
         hist_list = []
         val_loss_list = []
@@ -314,6 +316,8 @@ class Trainer(object):
             self.val_teacher = False
             # switch the student model validation to False
             self.val_student = False
+            # swith teacher weight update using ema to False
+            self.ema_update_now = False
             # training with multi-frames and ssl:
             for i_iter_train, (
                     _, source_train_vox_label, source_train_grid, _, source_train_pt_fea, source_ref_st_idx,
@@ -450,18 +454,28 @@ class Trainer(object):
                 # save student model if performance is improved
                 if self.student_best_val_miou < student_val_miou:
                     self.student_best_val_miou = student_val_miou
-                    torch.save(self.student_model.state_dict(), self.student_model_save_path)
-
+                    self.ema_update_now = True
                 print('Current Student val miou is %.3f while the best val miou is %.3f' % (student_val_miou, self.student_best_val_miou))
 
-            # -------EMA ----------------#
-            # EMA: Student ---> Teacher
-            if ((epoch - self.warmup_epoch) % self.ema_frequency == 0) and (epoch > self.warmup_epoch):
-                if self.student_best_val_miou < student_val_miou:
+                if self.ema_update_now:
+                    # -------EMA ----------------#
+                    # EMA: Student ---> Teacher
                     self._update_teacher_model()
                     print("--------------- EMA - Update Performed ----------------")
                     torch.save(self.teacher_model.state_dict(), self.teacher_model_save_path)
                     # switch the teacher model validation to True
-                self.val_teacher = True
+                    self.val_teacher = True
+                    # save student model
+                    torch.save(self.student_model.state_dict(), self.student_model_save_path)
+
+            # # -------EMA ----------------#
+            # # EMA: Student ---> Teacher
+            # if ((epoch - self.warmup_epoch) % self.ema_frequency == 0) and (epoch > self.warmup_epoch):
+            #     if self.student_best_val_miou < student_val_miou:
+            #         self._update_teacher_model()
+            #         print("--------------- EMA - Update Performed ----------------")
+            #         torch.save(self.teacher_model.state_dict(), self.teacher_model_save_path)
+            #         # switch the teacher model validation to True
+            #     self.val_teacher = True
 
 

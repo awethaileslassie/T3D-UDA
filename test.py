@@ -108,10 +108,16 @@ def main(args):
 
     SemKITTI_learningmap_inv = get_label_inv_name(dataset_config["label_mapping"])
     model = model_builder.build(model_config).to(pytorch_device)
-    print(f"teacher_model_path: {teacher_model_path}")
-    if os.path.exists(teacher_model_path):
-        model = load_checkpoint(teacher_model_path, model, map_location=pytorch_device)
-        print(f" loading teacher_model_path: {teacher_model_path}")
+
+    if args.network == 'student' or args.network == 'Student':
+        network_model_path = student_model_path
+    else:
+        network_model_path = teacher_model_path
+
+    print(f"{args.network}_model_path: {network_model_path}")
+    if os.path.exists(network_model_path):
+        model = load_checkpoint(network_model_path, model, map_location=pytorch_device)
+        print(f" loading {args.network}_model_path: {network_model_path}")
 
     # if args.mgpus:
     #     my_model = nn.DataParallel(my_model)
@@ -249,8 +255,9 @@ def main(args):
                     # get frame and sequence name
                     sample_name = dataset_loader.dataset.point_cloud_dataset.im_idx[i_iter_val * batch_size + count][
                                   -10:-4]
-                    sequence_num = dataset_loader.dataset.point_cloud_dataset.im_idx[i_iter_val * batch_size + count].split("/")[
-                            -3]  # [-22:-20]
+                    sequence_num = \
+                    dataset_loader.dataset.point_cloud_dataset.im_idx[i_iter_val * batch_size + count].split("/")[
+                        -3]  # [-22:-20]
                     # create destination path to save predictions
                     # path_to_seq_folder = path_to_save_predicted_labels + '/' + str(sequence_num)
                     path_to_seq_folder = os.path.join(path_to_save_predicted_labels, str(sequence_num),
@@ -314,10 +321,12 @@ def main(args):
 if __name__ == '__main__':
     # Training settings
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-y', '--config_path', default='configs/data_config/da_kitti_poss/uda_kitti_poss_f2_2_time.yaml')
+    parser.add_argument('-y', '--config_path',
+                        default='configs/data_config/da_kitti_poss/uda_kitti_poss_f2_0_time.yaml')
     # parser.add_argument('-y', '--config_path', default='configs/data_config/synthetic/synth4dsynth_f3_3_time.yaml')
     parser.add_argument('-g', '--mgpus', action='store_true', default=False)
     parser.add_argument('-m', '--mode', default='val')
+    parser.add_argument('-n', '--network', default='Teacher')
     parser.add_argument('-s', '--save', default=True)
     parser.add_argument('-c', '--challenge', default=False)
     parser.add_argument('-p', '--challenge_path', default='/mnt/personal/gebreawe/')
