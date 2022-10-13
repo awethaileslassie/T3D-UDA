@@ -2,10 +2,12 @@
 # author: Awet H. Gebrehiwot
 # --------------------------|
 import argparse
+import copy
 import math
 import os
 import sys
 import warnings
+import time
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -248,8 +250,17 @@ def main(args):
 
                 if args.save:
                     # convert the prediction into corresponding GT labels (inverse mapping)
-                    for index, label in enumerate(predict_labels_serialized):
-                        predict_labels_serialized[index] = SemKITTI_learningmap_inv[label]
+                    # predict_labels_serialized_org = copy.copy(predict_labels_serialized)
+                    # tic = time.perf_counter()
+                    # for index, label in enumerate(predict_labels_serialized):
+                    #     predict_labels_serialized[index] = SemKITTI_learningmap_inv[label]
+                    # toc = time.perf_counter()
+                    # print(f"forloop finished in {toc - tic:0.4f} seconds")
+                    # tic = time.perf_counter()
+                    predict_labels_serialized = np.vectorize(SemKITTI_learningmap_inv.__getitem__)(predict_labels_serialized)
+                    # toc = time.perf_counter()
+                    # print(f"np vector finished in {toc - tic:0.4f} seconds")
+                    # assert predict_labels_serialized == predict_labels_serialized_vec
                     # print(predict_labels_serialized.size)
 
                     # get frame and sequence name
