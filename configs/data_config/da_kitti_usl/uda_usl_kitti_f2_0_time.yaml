@@ -47,7 +47,7 @@ train_data_loader:
   num_workers: 0
 
 val_data_loader:
-  data_path: "/mnt/personal/gebreawe/Datasets/RealWorld/semantic-kitti/dataset/sequences" #"/mnt/personal/gebreawe/Datasets/RealWorld/SemanticUSL/sequences"
+  data_path: "/mnt/personal/gebreawe/Datasets/RealWorld/SemanticUSL/sequences" #"/mnt/personal/gebreawe/Datasets/RealWorld/SemanticUSL/sequences"
   imageset: "val"
   return_ref: True
   batch_size: 2
@@ -73,8 +73,8 @@ ssl_data_loader:
 ###################
 ## test params
 train_params:
-  teacher_model_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/teacher_usl_kitti_f2_0_time_ema_.pt"
-  student_model_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/student_usl_kitti_f2_0_time_ema_.pt"
+  teacher_model_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/teacher_usl_kitti_f2_0_time_ema.pt"
+  student_model_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/student_usl_kitti_f2_0_time_ema.pt"
   checkpoint_every_n_steps: 1000
   max_num_epochs: 40
   eval_every_n_steps: 1000

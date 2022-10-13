@@ -55,7 +55,7 @@ val_data_loader:
   num_workers: 0
 
 test_data_loader:
-  data_path: "/mnt/personal/gebreawe/Datasets/Synthetic/Valeo/Livox/processed"
+  data_path: "/mnt/personal/gebreawe/Datasets/RealWorld/Valeo/Livox/processed/Data_FC_2022_03_Honda_Jazz_full/city"
   imageset: "test"
   return_ref: True
   batch_size: 4
@@ -85,7 +85,7 @@ train_params:
   T_future: '0'
   ssl: False
   rgb: False
-  uda: False
+  uda: True
   time: True
-  S_sensor_zpose: 1.79
-  T_sensor_zpose: 2.19
+  S_sensor_zpose: -1.9
+  T_sensor_zpose: -1.9

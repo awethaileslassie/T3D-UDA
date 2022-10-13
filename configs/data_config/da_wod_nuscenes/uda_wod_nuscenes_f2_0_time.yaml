@@ -73,8 +73,8 @@ ssl_data_loader:
 ###################
 ## test params
 train_params:
-  teacher_model_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/teacher_wod_nuscenes_f2_0_time_ema_.pt"
-  student_model_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/student_wod_nuscenes_f2_0_time_ema_.pt"
+  teacher_model_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/teacher_wod_nuscenes_f2_0_time_ema.pt"
+  student_model_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/student_wod_nuscenes_f2_0_time_ema.pt"
   checkpoint_every_n_steps: 1000
   max_num_epochs: 40
   eval_every_n_steps: 1000
@@ -87,5 +87,5 @@ train_params:
   rgb: False
   uda: True
   time: True
-  S_sensor_zpose: 2.19
-  T_sensor_zpose: 1.79
+  S_sensor_zpose: 0.0 #2.19
+  T_sensor_zpose: 0.0 #1.79

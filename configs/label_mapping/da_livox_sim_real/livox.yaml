@@ -99,10 +99,12 @@ learning_ignore: # Ignore classes
   14: False # greenbelt
 split: # sequence numbers
   train: #
-    - 'simu_data'
+    - 'train'
   valid: #
-    - 'simu_data'
+    - 'val'
   pseudo:
-    - 'simu_data'
+    - '22-03-07_14-40-34_HondaJazz_F6021_ES_D_OC_UR_RIGHT_OV_0017'
+    - '22-03-07_14-40-34_HondaJazz_F6021_ES_D_OC_UR_RIGHT_OV_0018'
   test:
-    - 'simu_data'
+    - '22-03-07_14-40-34_HondaJazz_F6021_ES_D_OC_UR_RIGHT_OV_0017'
+    - '22-03-07_14-40-34_HondaJazz_F6021_ES_D_OC_UR_RIGHT_OV_0018'
