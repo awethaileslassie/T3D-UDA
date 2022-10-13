@@ -307,7 +307,7 @@ def main(args):
 if __name__ == '__main__':
     # Training settings
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-y', '--config_path', default='configs/data_config/da_livoxsim_livoxreal/uda_livoxsim_livoxreal_f2_0_time.yaml')
+    parser.add_argument('-y', '--config_path', default='configs/data_config/da_livoxsim_livoxreal/uda_livoxsim_livoxreal_f0_0_time.yaml')
     # parser.add_argument('-y', '--config_path', default='configs/data_config/wod/wod_f0_0_intensity_beam32.yaml')
     # parser.add_argument('-y', '--config_path', default='configs/semantickitti/semantickitti_f3_3_s10.yaml')
     parser.add_argument('-g', '--mgpus', action='store_true', default=False)

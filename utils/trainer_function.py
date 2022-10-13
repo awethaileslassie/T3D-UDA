@@ -336,7 +336,7 @@ class Trainer(object):
 
                     # TODO: check --> to mitigate only one element tensors can be converted to Python scalars
                     # loss = loss.mean()
-                    # print(loss)
+                    # print(source_output.size(), source_point_label_tensor.size(), loss)
                     loss.backward()
                     self.optimizer_teacher.step()
                     self.optimizer_teacher.zero_grad()
