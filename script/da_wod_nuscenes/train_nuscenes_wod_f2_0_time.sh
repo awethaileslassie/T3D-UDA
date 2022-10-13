@@ -3,8 +3,8 @@
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=24                  # 1 node
 #SBATCH --ntasks-per-node=1         # 36 tasks per node
-#SBATCH --time=03-00:00:0              # time limits: 500 hour
-#SBATCH --partition=amdgpulong	  # gpufast
+#SBATCH --time=10-00:00:0              # time limits: 500 hour
+#SBATCH --partition=amdgpuextralong	  # gpufast
 #SBATCH --gres=gpu:1
 #SBATCH --mem=60G
 #SBATCH --output=/home/gebreawe/Model_logs/Segmentation/T-UDA/logs/train_uda_nuscenes_wod_f2_0_time_%j.log     # file name for stdout/stderr
