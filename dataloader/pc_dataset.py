@@ -346,10 +346,11 @@ class SemKITTI_sk_multiscan(data.Dataset):
         else:
             raise Exception(f'{imageset}: Split must be train/val/test/pseudo')
 
-        self.load_calib_poses()
+        if self.past or self.future:
+            self.load_calib_poses()
 
         for i_folder in self.split:
-            self.im_idx += absoluteFilePaths('/'.join([data_path, str(i_folder).zfill(2), 'velodyne']))
+            self.im_idx += absoluteFilePaths('/'.join([data_path, str(i_folder), 'velodyne']))
 
     def __len__(self):
         'Denotes the total number of samples'
@@ -712,8 +713,11 @@ class WOD_multiscan(data.Dataset):
                 # print(self.im_idx[index].replace('lidar', 'labels')[:-3] + 'npy')
                 annotated_data = np.load(newpath.replace('lidar', 'labels')[:-3] + 'npy',
                                          allow_pickle=True)
-                if annotated_data.shape[1] == 2:
-                    annotated_data = annotated_data[:, 1].reshape((-1, 1))
+                if len(annotated_data.shape) == 2:
+                    if annotated_data.shape[1] == 2:
+                        annotated_data = annotated_data[:, 1]
+                # Reshape the label/annotation to vector.
+                annotated_data = annotated_data.reshape((-1, 1))
 
             annotated_data = annotated_data & 0xFFFF  # delete high 16 digits binary
 

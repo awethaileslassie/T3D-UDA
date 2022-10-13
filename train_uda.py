@@ -99,10 +99,14 @@ def main(args):
     teacher_model = model_builder.build(model_config).to(pytorch_device)
 
     if os.path.exists(student_model_path):
+        print('student loading from student ckpt')
         student_model = load_checkpoint(student_model_path, student_model, map_location=pytorch_device)
+    else:
+        print('student loading from teacher ckpt')
+        student_model = load_checkpoint(teacher_model_path, student_model, map_location=pytorch_device)
     if os.path.exists(teacher_model_path):
+        print('teacher loading from teacher ckpt')
         teacher_model = load_checkpoint(teacher_model_path, teacher_model, map_location=pytorch_device)
-
 
     # if args.mgpus:
     #     student_model = nn.DataParallel(student_model)
@@ -194,8 +198,8 @@ def main(args):
                       ssl=ssl,
                       eval_frequency=1,
                       pytorch_device=pytorch_device,
-                      warmup_epoch=5,
-                      ema_frequency=5)
+                      warmup_epoch=0,
+                      ema_frequency=1)
 
     # train and val model
     trainer.uda_fit(train_hypers["max_num_epochs"],
@@ -219,8 +223,8 @@ def main(args):
 if __name__ == '__main__':
     # Training settings
     parser = argparse.ArgumentParser(description='')
-    # parser.add_argument('-y', '--config_path', default='configs/data_config/da_kitti_poss/uda_poss_kitti_f2_2_time.yaml')
-    parser.add_argument('-y', '--config_path', default='configs/data_config/da_kitti_usl/uda_usl_kitti_f2_2_time.yaml')
+    # parser.add_argument('-y', '--config_path', default='configs/data_config/da_kitti_poss/uda_poss_kitti_f2_0_time.yaml')
+    parser.add_argument('-y', '--config_path', default='configs/data_config/semantickitti/semantickitti_S0_0_T11_33_ssl_s20_p80.yaml')
     # parser.add_argument('-y', '--config_path', default='configs/data_config/semantickitti/semantickitti_f3_3_s10.yaml')
     parser.add_argument('-g', '--mgpus', action='store_true', default=False)
     parser.add_argument("--local_rank", default=0, type=int)
