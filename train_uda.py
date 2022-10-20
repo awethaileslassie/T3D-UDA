@@ -101,7 +101,7 @@ def main(args):
     if os.path.exists(student_model_path):
         print('student loading from student ckpt')
         student_model = load_checkpoint(student_model_path, student_model, map_location=pytorch_device)
-    else:
+    elif os.path.exists(teacher_model_path):
         print('student loading from teacher ckpt')
         student_model = load_checkpoint(teacher_model_path, student_model, map_location=pytorch_device)
     if os.path.exists(teacher_model_path):
@@ -198,7 +198,7 @@ def main(args):
                       ssl=ssl,
                       eval_frequency=1,
                       pytorch_device=pytorch_device,
-                      warmup_epoch=0,
+                      warmup_epoch=5,
                       ema_frequency=1)
 
     # train and val model
