@@ -97,7 +97,6 @@ learning_ignore: # Ignore classes
   10: False    # "vegetation"
   11: False    # "man-made"
 
-
 split: # sequence numbers
   train: # 20 percent gt
     - '10017090168044687777_6380_000_6400_000'
@@ -1104,13 +1103,16 @@ split: # sequence numbers
     - '967082162553397800_5102_900_5122_900'
 
   pseudo:
-    - '10359308928573410754_720_000_740_000'
+    - '00'
+    - '01'
+    - '02'
+    - '03'
+    - '04'
+    - '05'
+    - '06'
+    - '07'
+    - '09'
+    - '10'
 
   test:
-    - 'X5-MIA2662_TIC_PCAP_20210616_065116_HIL_output'
-    - 'X5-MIA2662_TIC_PCAP_20210816_182930_HIL_output'
-    - 'X5-MIA2662_TIC_PCAP_20210621_085330_HIL_output'
-    - 'X5-MIA2662_TIC_PCAP_20210816_183246_HIL_output'
-    - 'X5-MIA2662_TIC_PCAP_20210816_181912_HIL_output'
-    - 'X5-MIA2662_TIC_PCAP_20210816_183855_HIL_output'
-    - 'X5-MIA2662_TIC_PCAP_20210816_182320_HIL_output'
+    - '967082162553397800_5102_900_5122_900'
