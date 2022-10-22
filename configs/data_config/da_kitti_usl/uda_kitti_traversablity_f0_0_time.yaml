@@ -13,7 +13,7 @@ model_params:
 
   fea_dim: 9
   out_fea_dim: 256
-  num_class: 13
+  num_class: 3
   num_input_features: 16
   use_norm: True
   init_size: 32
@@ -22,11 +22,11 @@ model_params:
 ## Dataset options
 dataset_params:
   dataset_type: "cylinder_dataset"
-  pc_dataset_type: "SemKITTI_sk_multiscan" #  #  # "SemKITTI_sk" #
+  pc_dataset_type: "WOD_multiscan" #  #  # "SemKITTI_sk" #
   ignore_label: 0 # undefined
   return_test: False
   fixed_volume_space: True
-  label_mapping: "./configs/label_mapping/da_kitti_poss_usl/poss.yaml"
+  label_mapping: "./configs/label_mapping/da_kitti_poss_usl/traversablity.yaml"
   max_volume_space:
     - 50
     - 3.1415926
@@ -39,7 +39,7 @@ dataset_params:
 ###################
 ## Data_loader options
 train_data_loader:
-  data_path: "/mnt/personal/gebreawe/Datasets/RealWorld/SemanticPOSS_dataset/sequences"
+  data_path: "/mnt/personal/gebreawe/Datasets/RealWorld/semantic-kitti/all_npy/sequences"
   imageset: "train"
   return_ref: True
   batch_size: 2 #4
@@ -47,7 +47,7 @@ train_data_loader:
   num_workers: 0
 
 val_data_loader:
-  data_path: "/mnt/personal/gebreawe/Datasets/RealWorld/SemanticPOSS_dataset/sequences"
+  data_path: "/mnt/personal/gebreawe/Datasets/RealWorld/semantic-kitti/all_npy/sequences"
   imageset: "val"
   return_ref: True
   batch_size: 2
@@ -55,7 +55,7 @@ val_data_loader:
   num_workers: 0
 
 test_data_loader:
-  data_path: "/mnt/personal/gebreawe/Datasets/RealWorld/SemanticPOSS_dataset/sequences"
+  data_path: "/mnt/personal/gebreawe/Datasets/RealWorld/semantic-kitti/all_npy/sequences"
   imageset: "test"
   return_ref: True
   batch_size: 2
@@ -63,7 +63,7 @@ test_data_loader:
   num_workers: 4
 
 ssl_data_loader:
-  data_path: "/mnt/personal/gebreawe/Datasets/RealWorld/semantic-kitti/dataset/sequences"
+  data_path: "/mnt/personal/agishrus/data/datasets/TraversabilityDataset/sequences"
   imageset: "pseudo"
   return_ref: True
   batch_size: 2
@@ -73,19 +73,19 @@ ssl_data_loader:
 ###################
 ## test params
 train_params:
-  teacher_model_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/teacher_kitti_poss_f2_2_time_ema.pt"
-  student_model_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/student_kitti_poss_f2_2_time_ema.pt"
+  teacher_model_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/teacher_kitti_traversablity_f0_0_time_ema.pt"
+  student_model_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/student_kitti_traversablity_f0_0_time_ema.pt"
   checkpoint_every_n_steps: 1000
   max_num_epochs: 40
   eval_every_n_steps: 1000
   learning_rate: 0.001
-  past: 2
+  past: 0
   future: 0
-  T_past: '2_kitti'
-  T_future: '0_poss'
+  T_past: '0_kitti'
+  T_future: '0_traversablity'
   ssl: False
   rgb: False
   uda: True
   time: True
-  S_sensor_zpose: 2.19
-  T_sensor_zpose: 1.79
+  S_sensor_zpose: 1.79
+  T_sensor_zpose: 0.46

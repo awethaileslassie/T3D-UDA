@@ -333,12 +333,12 @@ if __name__ == '__main__':
     # Training settings
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('-y', '--config_path',
-                        default='configs/data_config/da_kitti_poss/uda_kitti_poss_f2_0_time.yaml')
+                        default='configs/data_config/da_wod_nuscenes/uda_val_nuscenes_wod_f2_0_time.yaml')
     # parser.add_argument('-y', '--config_path', default='configs/data_config/synthetic/synth4dsynth_f3_3_time.yaml')
     parser.add_argument('-g', '--mgpus', action='store_true', default=False)
     parser.add_argument('-m', '--mode', default='val')
-    parser.add_argument('-n', '--network', default='Teacher')
-    parser.add_argument('-s', '--save', default=True)
+    parser.add_argument('-n', '--network', default='Student')
+    parser.add_argument('-s', '--save', default=False)
     parser.add_argument('-c', '--challenge', default=False)
     parser.add_argument('-p', '--challenge_path', default='/mnt/personal/gebreawe/')
     parser.add_argument('-u', '--ups', default=False)

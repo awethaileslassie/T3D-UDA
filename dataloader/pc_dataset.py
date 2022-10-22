@@ -291,7 +291,6 @@ def get_combined_data(raw_data, annotated_data, lcw, learning_map, return_ref, o
         # TODO: masking below 0.8 confidence
         # lcw_mask = lcw < 80
         # lcw[lcw_mask] = 0
-
         # origin_len is used to indicate the length of target-scan and lcw
         data_tuple += (raw_data[:, 3], lcw, preceding_frame_len, origin_len)
 
