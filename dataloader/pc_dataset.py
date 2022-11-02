@@ -1,7 +1,6 @@
 # -*- coding:utf-8 -*-
-# author: Xinge
-# @file: pc_dataset.py 
-
+# modified by Awet
+import copy
 import glob
 import os
 import pickle
@@ -676,6 +675,12 @@ class WOD_multiscan(data.Dataset):
 
     def get_wod_data(self, newpath, time_frame_idx):
         raw_data = np.load(newpath)
+        if raw_data.shape[1] == 3:
+            data = np.zeros((len(raw_data), 4))
+            data[:, :3] = raw_data[:, :3]
+            raw_data = copy.copy(data)
+        #assert raw_data.shape[1] >= 4
+
         if self.use_time:
             raw_data[:, 3] = np.ones_like(raw_data[:, 3]) * time_frame_idx
 
