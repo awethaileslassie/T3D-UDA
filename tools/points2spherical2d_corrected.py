@@ -81,14 +81,14 @@ class Spherical3DProjection:
             scan = np.fromfile(filename, dtype=np.float32)
             scan = scan.reshape((-1, 4))
             # put in attribute
-            points = scan[:, 0:3]  # get xyz
+            points = scan #[:, 0:3]  # get xyz
             if not os.path.exists(filename):
                 raise RuntimeError("Labels path does not exist")
             labels = np.fromfile(filename.replace("velodyne", "labels").replace(".bin", ".label"), dtype=np.int32)
         elif dataset == "WOD" or dataset == "wod" or dataset == "Wod":
             scan = np.load(filename)
             # put in attribute
-            points = scan[:, 0:3]  # get xyz
+            points = scan  # scan[:, 0:3]  # get xyz
 
             if not os.path.exists(filename):
                 raise RuntimeError("Labels path does not exist")

@@ -76,6 +76,7 @@ def convert_bin2npy(data_path, dest_path, lidar_transform):
         spherical_project = Spherical3DProjection(project=True, H=64, W=2048, fov_up=3.0, fov_down=-25.0, target_beams=32)
 
     for seq in sequeses:
+        print(seq)
         frames = sorted(glob.glob(os.path.join(data_path, seq, 'velodyne', '*.bin')))
         seq_folder = join(data_path, seq)
 
