@@ -94,6 +94,12 @@ class Trainer(object):
                    + self.loss_func_teacher(outputs, point_label_tensor)
         return loss
 
+    # initialize student model from teacher model weights
+    @torch.no_grad()
+    def _initialize_student_model_from_teacher(self):
+        teacher_model_dict = self.teacher_model.state_dict()
+        self.student_model.load_state_dict(teacher_model_dict)
+
     # updating teacher model weights
     @torch.no_grad()
     def _update_teacher_model(self, keep_rate=0.996):
@@ -325,13 +331,20 @@ class Trainer(object):
                 source_train_dataset_loader):
 
                 #####################################################
+
+                if (epoch == self.warmup_epoch) and (i_iter_train == 0):
+                    # create student model
+                    # self.model = list(self.model)  # where attribute was dict_keys
+                    # self.student_model = copy.deepcopy(self.teacher_model)
+                    # initialize a student model form teacher model weights
+                    self._initialize_student_model_from_teacher()
+
                 # train teacher model in the burn in stage
                 if epoch < self.warmup_epoch:
                     self.teacher_model.train()
                     source_output, source_point_label_tensor = self.forward(self.teacher_model, source_train_vox_label,
                                                                             source_train_grid, source_train_pt_fea,
                                                                             source_train_batch_size, mode='Train')
-
                     loss = self.criterion(source_output, source_point_label_tensor, source_lcw)
 
                     # TODO: check --> to mitigate only one element tensors can be converted to Python scalars
