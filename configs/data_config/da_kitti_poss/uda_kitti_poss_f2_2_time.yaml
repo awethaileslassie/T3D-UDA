@@ -50,7 +50,7 @@ val_data_loader:
   data_path: "/mnt/personal/gebreawe/Datasets/RealWorld/semantic-kitti/dataset/sequences"
   imageset: "val"
   return_ref: True
-  batch_size: 2
+  batch_size: 1
   shuffle: False
   num_workers: 0
 
@@ -73,17 +73,19 @@ ssl_data_loader:
 ###################
 ## test params
 train_params:
-  model_load_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/kitti_poss_f2_2_time.pt"
-  model_save_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/kitti_poss_f2_2_time.pt"
+  teacher_model_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/teacher_kitti_poss_f2_2_time.pt"
+  student_model_path: "/home/gebreawe/Model_checkpoint/Segmentation/T-UDA/model_save_dir/student_kitti_poss_f2_2_time.pt"
   checkpoint_every_n_steps: 1000
   max_num_epochs: 40
   eval_every_n_steps: 1000
   learning_rate: 0.001
   past: 2
   future: 2
-  T_past: '3_time'
-  T_future: '3_time'
+  T_past: '2_time'
+  T_future: '2_time'
   ssl: False
   rgb: False
-  uda: False
+  uda: True
   time: True
+  S_sensor_zpose: 1.79
+  T_sensor_zpose: 2.19

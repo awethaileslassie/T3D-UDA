@@ -76,8 +76,8 @@ ssl_data_loader = Map(
 
 train_params = Map(
     {
-        "model_load_path": Str(),
-        "model_save_path": Str(),
+        "teacher_model_path": Str(),
+        "student_model_path": Str(),
         "checkpoint_every_n_steps": Int(),
         "max_num_epochs": Int(),
         "eval_every_n_steps": Int(),
@@ -90,6 +90,8 @@ train_params = Map(
         "rgb": Bool(),
         "uda": Bool(),
         "time": Bool(),
+        "S_sensor_zpose": Float(),
+        "T_sensor_zpose": Float(),
     }
 )
 

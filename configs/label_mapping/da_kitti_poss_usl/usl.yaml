@@ -177,17 +177,12 @@ learning_ignore: # Ignore classes
 
 split: # sequence numbers
   train:
-    - '00'
-    - '01'
-    - '02'
-    - '03'
-#    - '04' # has only ignored label
-    - '05'
-    - '06'
-    - '07'
+    - '12'
+    - '21'
+    - '32'
 
   valid:
-    - '08'
+    - '03'
 
   pseudo:
     - '00'
@@ -202,4 +197,4 @@ split: # sequence numbers
     - '10'
 
   test: #
-    - '08'
+    - '03'
