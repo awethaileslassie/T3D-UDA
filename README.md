@@ -1,6 +1,5 @@
 # `T3D-UDA` Spatio-Temporal Unsupervised Domain Adaptation 3D Sequential Data
 
-# `T3D-UDA` Spatio-Temporal Unsupervised Domain Adaptation 3D Sequential Data
 
 `T3D-UDA` The source code was borrow from our work **Teachers in concordance for pseudo-labeling of 3D sequential data**
 ![img│center](./image/st-uda.png)
@@ -128,19 +127,3 @@ sh eval_wod_valeo_f3_3.sh
 - [X] Release data preparation code.
 - [ ] Release more pretrained model for wod --> valeo
 - [ ] Integrate Teachers in Concordance for LiDAR 3D Object Detection into the codebase.
-
-## Reference
-
-If you find our work useful in your research, please consider citing our [paper](https://arxiv.org/abs/2207.06079):
-```
-@article{gebrehiwot2022teachers,
-  title={Teachers in concordance for pseudo-labeling of 3D sequential data},
-  author={Gebrehiwot, Awet Haileslassie and Vacek, Patrik and Hurych, David and Zimmermann, Karel and Perez, Patrick and Svoboda, Tom{\'a}{\v{s}}},
-  journal={arXiv preprint arXiv:2207.06079},
-  year={2022}
-}
-```
-
-## Acknowledgments
-- This work was supported in part by OP VVV MEYS funded project CZ.02.1.01/0.0/0.0/16 019/0000765 “Research Center for Informatics”, and by Grant Agency of the CTU Prague under Project SGS22/111/OHK3/2T/13. Authors want to thank Valeo company for a support.
-- We thank for the opensource codebase, [Cylinder3D](https://github.com/xinge008/Cylinder3D) and [spconv V2.0](https://github.com/traveller59/spconv)
