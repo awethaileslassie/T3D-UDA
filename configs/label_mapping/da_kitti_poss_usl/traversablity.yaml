@@ -1,7 +1,8 @@
 # This file is covered by the LICENSE file in the root of this project.
 labels:
-  0: "unlabeled"
-  1: "outlier"
+  0 : "unlabeled"
+  1 : "obstacle"
+  2 : "traversable"
   10: "car"
   11: "bicycle"
   13: "bus"
@@ -34,10 +35,10 @@ labels:
   257: "moving-bus"
   258: "moving-truck"
   259: "moving-other-vehicle"
-
 color_map: # bgr
-  0: [0, 0, 0]
-  1: [0, 0, 255]
+  0 : [0, 0, 0]
+  1 : [0, 0, 255]
+  2 : [255, 0, 255]
   10: [245, 150, 100]
   11: [245, 230, 100]
   13: [250, 80, 100]
@@ -70,10 +71,10 @@ color_map: # bgr
   257: [250, 80, 100]
   258: [180, 30, 80]
   259: [255, 0, 0]
-
 content: # as a ratio with the total number of points
   0: 0.018889854628292943
   1: 0.0002937197336781505
+  2: 0.0002937197336781505
   10: 0.040818519255974316
   11: 0.00016609538710764618
   13: 2.7879693665067774e-05
@@ -106,87 +107,55 @@ content: # as a ratio with the total number of points
   257: 0.00011351574470342043
   258: 0.00010157861367183268
   259: 4.3840131989471124e-05
-
 # classes that are indistinguishable from single scan or inconsistent in
 # ground truth are mapped to their closest equivalent
 learning_map:
-  0: 0 # "unlabeled"
-  1: 0 # "outlier" mapped to "unlabeled" --------------------------mapped
-  10: 3 # "car"
-  11: 11 # "bicycle"
-  13: 3 # "bus" mapped to "other-vehicle" --------------------------mapped
-  15: 3 # "motorcycle"
-  16: 3 # "on-rails" mapped to "other-vehicle" ---------------------mapped
-  18: 3 # "truck"
-  20: 3 # "other-vehicle"
+  0 : 0 # "unlabeled"
+  1 : 0 # "outlier"
+  10: 1 # "car"
+  11: 1 # "bicycle"
+  13: 1 # "bus"
+  15: 1 # "motorcycle"
+  16: 1 # "on-rails"
+  18: 1 # "truck"
+  20: 1 # "other-vehicle"
   30: 1 # "person"
-  31: 2 # "bicyclist"
-  32: 2 # "motorcyclist"
-  40: 12 # "road"
-  44: 12 # "parking"
-  48: 12 # "sidewalk"
-  49: 12 # "other-ground"
-  50: 9 # "building"
-  51: 10 # "fence"
-  52: 0 # "other-structure" mapped to "unlabeled" ------------------mapped
-  60: 0 # "lane-marking" to "road" ---------------------------------mapped
-  70: 5 # "vegetation"
-  71: 4 # "trunk"
-  72: 12 # "terrain"
-  80: 7 # "pole"
-  81: 6 # "traffic-sign"
-  99: 8 # "other-object" to "unlabeled" ----------------------------mapped
-  252: 3 # "moving-car" to "car" ------------------------------------mapped
-  253: 2 # "moving-bicyclist" to "bicyclist" ------------------------mapped
-  254: 1 # "moving-person" to "person" ------------------------------mapped
-  255: 2 # "moving-motorcyclist" to "motorcyclist" ------------------mapped
-  256: 3 # "moving-on-rails" mapped to "other-vehicle" --------------mapped
-  257: 3 # "moving-bus" mapped to "other-vehicle" -------------------mapped
-  258: 3 # "moving-truck" to "truck" --------------------------------mapped
-  259: 3 # "moving-other"-vehicle to "other-vehicle" ----------------mapped
-
+  31: 1 # "bicyclist"
+  32: 1 # "motorcyclist"
+  40: 2 # "road"
+  44: 2 # "parking"
+  48: 2 # "sidewalk"
+  49: 2 # "other-ground"
+  50: 1 # "building"
+  51: 1 # "fence"
+  52: 1 # "other-structure"
+  60: 2 # "lane-marking"
+  70: 1 # "vegetation"
+  71: 1 # "trunk"
+  72: 2 # "terrain"
+  80: 1 # "pole"
+  81: 1 # "traffic-sign"
+  99: 1 # "other-object"
+  252: 1 # "moving-car"
+  253: 1 # "moving-bicyclist"
+  254: 1 # "moving-person"
+  255: 1 # "moving-motorcyclist"
+  256: 1 # "moving-on-rails"
+  257: 1 # "moving-bus"
+  258: 1 # "moving-truck"
+  259: 1 # "moving-other-vehicle"
 learning_map_inv: # inverse of previous map
-  0: 0 # "unlabeled", and others ignored
-  1: 30 # "person"
-  2: 31 # "bicyclist" / "rider"
-  3: 10 # "car"
-  4: 71 # "trunk"
-  5: 70 # "vegetation"
-  6: 81 # "traffic-sign"
-  7: 80 # "pole"
-  8: 99 # "other-object" to "unlabeled"
-  9: 50 # "building"
-  10: 51 # "fence"
-  11: 11 # "bicycle"
-  12: 40 # "road"
+  0: 255      # "unlabeled", and others ignored
+  1: 1     # "car"
+  2: 0     # "bicycle"
 
 learning_ignore: # Ignore classes
-  0: True # "unlabeled", and others ignored
-  1: False # "person"
-  2: False # "bicyclist" / rider
-  3: False # "car"
-  4: False # "trunk"
-  5: False # "vegetation"
-  6: False # "traffic-sign"
-  7: False # "pole"
-  8: False # "other-object" to "unlabeled"
-  9: False # "building"
-  10: False # "fence"
-  11: False # "bicycle" /bike
-  12: False # "road"
+  0: True      # "unlabeled", and others ignored
+  1: False     # "obstacle"
+  2: False     # "traversable"
 
 split: # sequence numbers
-  train:
-    - '03'
-    - '12'
-    - '21'
-    - '32'
-  valid:
-    - '03'
-    - '12'
-    - '21'
-    - '32'
-  pseudo:
+  train: # 20 percent gt
     - '00'
     - '01'
     - '02'
@@ -197,6 +166,12 @@ split: # sequence numbers
     - '07'
     - '09'
     - '10'
-
-  test: #
-    - '03'
+  pseudo: # 80 percent pseudo-labeled
+    - 'ugv_2022-08-12-15-18-34_z_support'
+    - 'ugv_2022-08-12-16-08-17_z_support'
+    - 'ugv_2022-08-12-15-30-22_z_support'
+    - 'ugv_2022-08-12-16-37-03_z_support'
+  valid:
+    - '08'
+  test:
+    - '08'

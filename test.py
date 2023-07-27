@@ -2,10 +2,12 @@
 # author: Awet H. Gebrehiwot
 # --------------------------|
 import argparse
+import copy
 import math
 import os
 import sys
 import warnings
+import time
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -108,10 +110,16 @@ def main(args):
 
     SemKITTI_learningmap_inv = get_label_inv_name(dataset_config["label_mapping"])
     model = model_builder.build(model_config).to(pytorch_device)
-    print(f"teacher_model_path: {teacher_model_path}")
-    if os.path.exists(teacher_model_path):
-        model = load_checkpoint(teacher_model_path, model, map_location=pytorch_device)
-        print(f" loading teacher_model_path: {teacher_model_path}")
+
+    if args.network == 'student' or args.network == 'Student':
+        network_model_path = student_model_path
+    else:
+        network_model_path = teacher_model_path
+
+    print(f"{args.network}_model_path: {network_model_path}")
+    if os.path.exists(network_model_path):
+        model = load_checkpoint(network_model_path, model, map_location=pytorch_device)
+        print(f" loading {args.network}_model_path: {network_model_path}")
 
     # if args.mgpus:
     #     my_model = nn.DataParallel(my_model)
@@ -242,15 +250,25 @@ def main(args):
 
                 if args.save:
                     # convert the prediction into corresponding GT labels (inverse mapping)
-                    for index, label in enumerate(predict_labels_serialized):
-                        predict_labels_serialized[index] = SemKITTI_learningmap_inv[label]
+                    # predict_labels_serialized_org = copy.copy(predict_labels_serialized)
+                    # tic = time.perf_counter()
+                    # for index, label in enumerate(predict_labels_serialized):
+                    #     predict_labels_serialized[index] = SemKITTI_learningmap_inv[label]
+                    # toc = time.perf_counter()
+                    # print(f"forloop finished in {toc - tic:0.4f} seconds")
+                    # tic = time.perf_counter()
+                    predict_labels_serialized = np.vectorize(SemKITTI_learningmap_inv.__getitem__)(predict_labels_serialized)
+                    # toc = time.perf_counter()
+                    # print(f"np vector finished in {toc - tic:0.4f} seconds")
+                    # assert predict_labels_serialized == predict_labels_serialized_vec
                     # print(predict_labels_serialized.size)
 
                     # get frame and sequence name
                     sample_name = dataset_loader.dataset.point_cloud_dataset.im_idx[i_iter_val * batch_size + count][
                                   -10:-4]
-                    sequence_num = dataset_loader.dataset.point_cloud_dataset.im_idx[i_iter_val * batch_size + count].split("/")[
-                            -3]  # [-22:-20]
+                    sequence_num = \
+                    dataset_loader.dataset.point_cloud_dataset.im_idx[i_iter_val * batch_size + count].split("/")[
+                        -3]  # [-22:-20]
                     # create destination path to save predictions
                     # path_to_seq_folder = path_to_save_predicted_labels + '/' + str(sequence_num)
                     path_to_seq_folder = os.path.join(path_to_save_predicted_labels, str(sequence_num),
@@ -314,11 +332,13 @@ def main(args):
 if __name__ == '__main__':
     # Training settings
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-y', '--config_path', default='configs/data_config/da_kitti_poss/uda_kitti_poss_f2_2_time.yaml')
+    parser.add_argument('-y', '--config_path',
+                        default='configs/data_config/da_wod_nuscenes/uda_val_nuscenes_wod_f2_0_time.yaml')
     # parser.add_argument('-y', '--config_path', default='configs/data_config/synthetic/synth4dsynth_f3_3_time.yaml')
     parser.add_argument('-g', '--mgpus', action='store_true', default=False)
     parser.add_argument('-m', '--mode', default='val')
-    parser.add_argument('-s', '--save', default=True)
+    parser.add_argument('-n', '--network', default='Student')
+    parser.add_argument('-s', '--save', default=False)
     parser.add_argument('-c', '--challenge', default=False)
     parser.add_argument('-p', '--challenge_path', default='/mnt/personal/gebreawe/')
     parser.add_argument('-u', '--ups', default=False)

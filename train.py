@@ -84,8 +84,8 @@ def main(args):
     num_class = model_config['num_class']
     ignore_label = dataset_config['ignore_label']
 
-    model_load_path = train_hypers['model_load_path']
-    model_save_path = train_hypers['model_save_path']
+    model_load_path = train_hypers['teacher_model_path']
+    model_save_path = train_hypers['teacher_model_path']
 
     SemKITTI_label_name = get_label_name(dataset_config["label_mapping"])
     # NB: no ignored class
@@ -307,7 +307,7 @@ def main(args):
 if __name__ == '__main__':
     # Training settings
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-y', '--config_path', default='configs/data_config/da_kitti_usl/uda_usl_kitti_f2_2_time.yaml')
+    parser.add_argument('-y', '--config_path', default='configs/data_config/da_livoxsim_livoxreal/uda_livoxsim_livoxreal_f0_0_time.yaml')
     # parser.add_argument('-y', '--config_path', default='configs/data_config/wod/wod_f0_0_intensity_beam32.yaml')
     # parser.add_argument('-y', '--config_path', default='configs/semantickitti/semantickitti_f3_3_s10.yaml')
     parser.add_argument('-g', '--mgpus', action='store_true', default=False)

@@ -1,6 +1,5 @@
 # -*- coding:utf-8 -*-
-# author: Xinge
-# @file: train_cylinder_asym.py
+# author: Awet
 
 
 import glob

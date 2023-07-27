@@ -7,7 +7,7 @@
 #SBATCH --partition=amdgpulong	  # gpufast
 #SBATCH --gres=gpu:1
 #SBATCH --mem=60G
-#SBATCH --output=/home/gebreawe/Model_logs/Segmentation/T-UDA/logs/train_uda_poss_f2_2_time_%j.log     # file name for stdout/stderr
+#SBATCH --output=/home/gebreawe/Model_logs/Segmentation/T-UDA/logs/train_uda_livoxsim_train90_val10_f0_0_time_%j.log     # file name for stdout/stderr
 # module
 #ml spconv/20210618-fosscuda-2020b
 ml spconv/2.1.21-foss-2021a-CUDA-11.3.1
@@ -30,4 +30,4 @@ echo "epoch 0"
 
 #CUDA_VISIBLE_DEVICES=0,1 NCCL_P2P_DISABLE=1 python -u -m torch.distributed.launch --nproc_per_node=2 --master_port=$RANDOM train_uda.py --config_path 'configs/data_config/da_kitti_poss/uda_poss_kitti_f2_0_time.yaml' 2>&1 | tee logs_dir/${name}_logs_uda_poss_kitti_f2_2_time.txt
 
-python train.py --config_path 'configs/data_config/poss/poss_f2_2_time.yaml' 2>&1 | tee logs_dir/${name}_train_poss_f2_2_time.txt
+python train.py --config_path 'configs/data_config/da_livoxsim_livoxreal/uda_livoxsim_livoxreal_f0_0_time.yaml' 2>&1 | tee logs_dir/${name}_train_uda_livoxsim_train90_val10_f0_0_time.txt

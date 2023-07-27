@@ -1,7 +1,6 @@
 # -*- coding:utf-8 -*-
-# author: Xinge
-# @file: pc_dataset.py 
-
+# modified by Awet
+import copy
 import glob
 import os
 import pickle
@@ -291,7 +290,6 @@ def get_combined_data(raw_data, annotated_data, lcw, learning_map, return_ref, o
         # TODO: masking below 0.8 confidence
         # lcw_mask = lcw < 80
         # lcw[lcw_mask] = 0
-
         # origin_len is used to indicate the length of target-scan and lcw
         data_tuple += (raw_data[:, 3], lcw, preceding_frame_len, origin_len)
 
@@ -346,10 +344,11 @@ class SemKITTI_sk_multiscan(data.Dataset):
         else:
             raise Exception(f'{imageset}: Split must be train/val/test/pseudo')
 
-        self.load_calib_poses()
+        if self.past or self.future:
+            self.load_calib_poses()
 
         for i_folder in self.split:
-            self.im_idx += absoluteFilePaths('/'.join([data_path, str(i_folder).zfill(2), 'velodyne']))
+            self.im_idx += absoluteFilePaths('/'.join([data_path, str(i_folder), 'velodyne']))
 
     def __len__(self):
         'Denotes the total number of samples'
@@ -676,6 +675,12 @@ class WOD_multiscan(data.Dataset):
 
     def get_wod_data(self, newpath, time_frame_idx):
         raw_data = np.load(newpath)
+        if raw_data.shape[1] == 3:
+            data = np.zeros((len(raw_data), 4))
+            data[:, :3] = raw_data[:, :3]
+            raw_data = copy.copy(data)
+        #assert raw_data.shape[1] >= 4
+
         if self.use_time:
             raw_data[:, 3] = np.ones_like(raw_data[:, 3]) * time_frame_idx
 
@@ -712,8 +717,11 @@ class WOD_multiscan(data.Dataset):
                 # print(self.im_idx[index].replace('lidar', 'labels')[:-3] + 'npy')
                 annotated_data = np.load(newpath.replace('lidar', 'labels')[:-3] + 'npy',
                                          allow_pickle=True)
-                if annotated_data.shape[1] == 2:
-                    annotated_data = annotated_data[:, 1].reshape((-1, 1))
+                if len(annotated_data.shape) == 2:
+                    if annotated_data.shape[1] == 2:
+                        annotated_data = annotated_data[:, 1]
+                # Reshape the label/annotation to vector.
+                annotated_data = annotated_data.reshape((-1, 1))
 
             annotated_data = annotated_data & 0xFFFF  # delete high 16 digits binary
 

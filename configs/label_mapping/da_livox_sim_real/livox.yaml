@@ -1,0 +1,110 @@
+# This file is covered by the LICENSE file in the root of this project.
+labels:
+  0: "unknown "
+  1: "car"
+  2: "truck"
+  3: "bus"
+  4: "bicycle"
+  5: "motor"
+  6: "pedestrian"
+  7: "dog"
+  8: "road"
+  9: "ground"
+  10: "building"
+  11: "fence"
+  12: "tree"
+  13: "pole"
+  14: "greenbelt"
+color_map: # bgr
+  0: [ 0, 0, 0 ]
+  1: [ 0, 0, 255 ]
+  2: [ 245, 150, 100 ]
+  3: [ 245, 230, 100 ]
+  4: [ 250, 80, 100 ]
+  5: [ 150, 60, 30 ]
+  6: [ 255, 0, 0 ]
+  7: [ 180, 30, 80 ]
+  8: [ 255, 0, 0 ]
+  9: [ 30, 30, 255 ]
+  10: [ 200, 40, 255 ]
+  11: [ 90, 30, 150 ]
+  12: [ 255, 0, 255 ]
+  13: [ 255, 150, 255 ]
+  14: [ 255, 255, 0 ]
+content: # as a ratio with the total number of points
+  0: 1.018889854628292943
+  1: 1.0002937197336781505
+  2: 1.1326861944777486
+  3: 1.0723592229456223
+  4: 1.1987493871255525
+  5: 1.014717169549888214
+  6: 1.14392298360372
+  7: 1.14392298360372
+  8: 1.14392298360372
+  9: 1.0039048553037472045
+  10: 1.040818519255974316
+  11: 1.00016609538710764618
+  12: 1.00016609538710764618
+  13: 1.0027879693665067774
+  14: 1.001
+# classes that are indistinguishable from single scan or inconsistent in
+# ground truth are mapped to their closest equivalent
+learning_map:
+  0: 0 # "Undefined"
+  1: 1 # "Car"
+  2: 2 # "Truck"
+  3: 3 # "Bus"
+  4: 4 # "Other Vehicle"
+  5: 5 # "Motorcyclist"
+  6: 6 # "Bicyclist"
+  7: 7 # "Pedestrian"
+  8: 8 # "Sign"
+  9: 9 # "Traffic Light"
+  10: 10 # "Pole"
+  11: 11 # "Construction Cone"
+  12: 12 # "Bicycle"
+  13: 13 # "Motorcycle"
+  14: 14 # "greenbelt"
+learning_map_inv: # inverse of previous map
+  0: 0 # "Undefined"
+  1: 1 # "Car"
+  2: 2 # "Truck"
+  3: 3 # "Bus"
+  4: 4 # "Other Vehicle"
+  5: 5 # "Motorcyclist"
+  6: 6 # "Bicyclist"
+  7: 7 # "Pedestrian"
+  8: 8 # "Sign"
+  9: 9 # "Traffic Light"
+  10: 10 # "Pole"
+  11: 11 # "Construction Cone"
+  12: 12 # "Bicycle"
+  13: 13 # "Motorcycle"
+  14: 14 # "greenbelt"
+learning_ignore: # Ignore classes
+  0: False # "Undefined"
+  1: False # Car,
+  2: False # Truck,
+  3: False # Bus,
+  4: False # Other Vehicle
+  5: False # Motorcyclist,
+  6: False # Bicyclist,
+  7: False # Pedestrian,
+  8: False # Sign,
+  9: False # Traffic Light,
+  10: False # Pole,
+  11: False # Construction Cone,
+  12: False # Bicycle,
+  13: False # Motorcycle,
+  14: False # greenbelt
+split: # sequence numbers
+  train: #
+    - 'train'
+  valid: #
+    - 'val'
+  pseudo:
+    - '22-03-07_14-40-34_HondaJazz_F6021_ES_D_OC_UR_RIGHT_OV_0017'
+    - '22-03-07_14-40-34_HondaJazz_F6021_ES_D_OC_UR_RIGHT_OV_0018'
+  test:
+    - '22-03-07_14-40-34_HondaJazz_F6021_ES_D_OC_UR_RIGHT_OV_0017'
+    - '22-03-07_14-40-34_HondaJazz_F6021_ES_D_OC_UR_RIGHT_OV_0018'
