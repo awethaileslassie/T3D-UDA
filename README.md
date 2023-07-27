@@ -1,13 +1,6 @@
 # `T3D-UDA` Spatio-Temporal Unsupervised Domain Adaptation 3D Sequential Data
 
 `T3D-UDA` The source code of our work **Teachers in concordance for pseudo-labeling of 3D sequential data**
-![img│center](./image/concordance-architecture.png)
-Proposed Concordance of teachers for pseudo- labeling of sequences. A set Dℓ of sequences with central frame labeled,
-and a larger set Du of unannotated ones, are available for training; 1⃝ Multiple offline teachers are trained with full
-supervision on Dℓ, each with a different temporal range towards future and past frames; 2⃝ The teachers are run on Du to
-produce pseudo-labels (PLs) for central frames; 3⃝ Sequences with the most confident PLs according to Concordance of
-teachers are selected, forming the pseudo- labeled set Dp. The white box depicts the discarded PLs; 4⃝ The student is
-trained on Dℓ ∪ Dp, to work online with past and current frames only.
 
 ## Installation
 
@@ -155,23 +148,8 @@ human-labeled dataset Dℓ and the latter 80% for unlabeled dataset Du as shown 
 - [ ] Integrate Teachers in Concordance for LiDAR 3D Object Detection into the codebase.
 - [ ] Release pretrained model for WOD.
 
-## Reference
-
-If you find our work useful in your research, please consider citing our [paper](https://arxiv.org/abs/2207.06079):
-
-```
-@article{gebrehiwot2022teachers,
-  title={Teachers in concordance for pseudo-labeling of 3D sequential data},
-  author={Gebrehiwot, Awet Haileslassie and Vacek, Patrik and Hurych, David and Zimmermann, Karel and Perez, Patrick and Svoboda, Tom{\'a}{\v{s}}},
-  journal={arXiv preprint arXiv:2207.06079},
-  year={2022}
-}
-```
 
 ## Acknowledgments
 
-- This work was supported in part by OP VVV MEYS funded project CZ.02.1.01/0.0/0.0/16 019/0000765 “Research Center for
-  Informatics”, and by Grant Agency of the CTU Prague under Project SGS22/111/OHK3/2T/13. Authors want to thank Valeo
-  company for a support.
 - We thank for the opensource codebase, [Cylinder3D](https://github.com/xinge008/Cylinder3D)
   and [spconv V2.0](https://github.com/traveller59/spconv)
